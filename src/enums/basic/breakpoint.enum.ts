@@ -12,7 +12,7 @@ export enum ScreenEnum {
   SM = 640,
   MD = 768,
   LG = 960,
-  XL = 1280,
+  XL = 1100,
   XXL = 1536,
 }
 
