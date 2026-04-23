@@ -6,18 +6,17 @@
 	</transition>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Login from './Login.vue'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useUserStore } from '@/store/modules/user'
 import { usePermissionStore } from '@/store/modules/permission'
-import { type Nullable } from '@xueyi/types'
 
 const { prefixCls } = useDesign('st-login')
 const userStore = useUserStore()
 const permissionStore = usePermissionStore()
-const userId = ref<Nullable<number | string>>(0)
+const userId = ref(0)
 
 onMounted(() => {
 	// 记录当前的UserId
