@@ -1,62 +1,48 @@
 <template>
-  <template v-if="getShow">
-    <LoginFormTitle class="enter-x" />
-    <Form class="p-4 enter-x" :model="formData" :rules="getFormRules" ref="formRef">
-      <FormItem name="mobile" class="enter-x">
-        <Input
-          size="large"
-          v-model:value="formData.mobile"
-          placeholder="手机号码"
-          class="fix-auto-fill"
-        />
-      </FormItem>
-      <FormItem name="sms" class="enter-x">
-        <CountdownInput
-          size="large"
-          class="fix-auto-fill"
-          v-model:value="formData.sms"
-          placeholder="短信验证码"
-        />
-      </FormItem>
+	<template v-if="getShow">
+		<LoginFormTitle class="enter-x" />
+		<Form class="p-4 enter-x" :model="formData" :rules="getFormRules" ref="formRef">
+			<FormItem name="mobile" class="enter-x">
+				<Input size="large" v-model:value="formData.mobile" placeholder="手机号码" class="fix-auto-fill" />
+			</FormItem>
+			<FormItem name="sms" class="enter-x">
+				<CountdownInput size="large" class="fix-auto-fill" v-model:value="formData.sms" placeholder="短信验证码" />
+			</FormItem>
 
-      <FormItem class="enter-x">
-        <Button type="primary" size="large" block @click="handleLogin" :loading="loading">
-          登录
-        </Button>
-        <Button size="large" block class="mt-4" @click="handleBackLogin">
-          返回
-        </Button>
-      </FormItem>
-    </Form>
-  </template>
+			<FormItem class="enter-x">
+				<Button type="primary" size="large" block @click="handleLogin" :loading="loading"> 登录 </Button>
+				<Button size="large" block class="mt-4" @click="handleBackLogin"> 返回 </Button>
+			</FormItem>
+		</Form>
+	</template>
 </template>
 
-<script lang="ts" setup>
-  import { computed, reactive, ref, unref } from 'vue';
-  import { Button, Form, Input } from 'ant-design-vue';
-  import { CountdownInput } from '@/components/CountDown';
-  import LoginFormTitle from './LoginFormTitle.vue';
-  import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin';
+<script setup>
+import { computed, reactive, ref, unref } from 'vue'
+import { Button, Form, Input } from 'ant-design-vue'
+import { CountdownInput } from '@/components/CountDown'
+import LoginFormTitle from './LoginFormTitle.vue'
+import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin'
 
-  const FormItem = Form.Item;
-  const { handleBackLogin, getLoginState } = useLoginState();
-  const { getFormRules } = useFormRules();
+const FormItem = Form.Item
+const { handleBackLogin, getLoginState } = useLoginState()
+const { getFormRules } = useFormRules()
 
-  const formRef = ref();
-  const loading = ref(false);
+const formRef = ref()
+const loading = ref(false)
 
-  const formData = reactive({
-    mobile: '',
-    sms: '',
-  });
+const formData = reactive({
+	mobile: '',
+	sms: '',
+})
 
-  const { validForm } = useFormValid(formRef);
+const { validForm } = useFormValid(formRef)
 
-  const getShow = computed(() => unref(getLoginState) === LoginStateEnum.MOBILE);
+const getShow = computed(() => unref(getLoginState) === LoginStateEnum.MOBILE)
 
-  async function handleLogin() {
-    const data = await validForm();
-    if (!data) return;
-    console.log(data);
-  }
+async function handleLogin() {
+	const data = await validForm()
+	if (!data) return
+	console.log(data)
+}
 </script>
