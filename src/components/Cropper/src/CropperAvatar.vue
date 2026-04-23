@@ -17,7 +17,7 @@
       v-if="showBtn"
       v-bind="btnProps"
     >
-      {{ btnText ? btnText : t('component.cropper.selectImage') }}
+      {{ btnText ? btnText : "选择图片" }}
     </a-button>
 
     <CropperModal
@@ -36,7 +36,6 @@
   import { useDesign } from '@/hooks/web/useDesign';
   import { useModal } from '@/components/Modal';
   import { useMessage } from '@/hooks/web/useMessage';
-  import { useI18n } from '@/hooks/web/useI18n';
   import type { ButtonProps } from '@/components/Button';
   import Icon from '@/components/Icon/Icon.vue';
 
@@ -61,7 +60,6 @@
   const { prefixCls } = useDesign('cropper-avatar');
   const [register, { openModal, closeModal }] = useModal();
   const { createMessage } = useMessage();
-  const { t } = useI18n();
 
   const getClass = computed(() => [prefixCls]);
 
@@ -89,7 +87,7 @@
   function handleUploadSuccess({ source, data }) {
     sourceValue.value = source;
     emit('change', { source, data });
-    createMessage.success(t('component.cropper.uploadSuccess'));
+    createMessage.success("上传成功");
   }
 
   defineExpose({ openModal: openModal.bind(null, true), closeModal });

@@ -1,7 +1,7 @@
 <template>
   <BasicModal
     :footer="null"
-    :title="t('layout.header.lockScreen')"
+    title="锁定屏幕"
     v-bind="$attrs"
     :class="prefixCls"
     @register="register"
@@ -18,7 +18,7 @@
 
       <div :class="`${prefixCls}__footer`">
         <a-button type="primary" block class="mt-2" @click="handleLock">
-          {{ t('layout.header.lockScreenBtn') }}
+          锁定
         </a-button>
       </div>
     </div>
@@ -26,7 +26,6 @@
 </template>
 <script lang="ts" setup>
   import { computed } from 'vue';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { useDesign } from '@/hooks/web/useDesign';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, useForm } from '@/components/Form';
@@ -36,8 +35,6 @@
   import headerImg from '@/assets/images/header.jpg';
 
   defineOptions({ name: 'LockModal' });
-
-  const { t } = useI18n();
   const { prefixCls } = useDesign('header-lock-modal');
   const userStore = useUserStore();
   const lockStore = useLockStore();
@@ -50,7 +47,7 @@
     schemas: [
       {
         field: 'password',
-        label: t('layout.header.lockScreenPassword'),
+        label: "锁屏密码",
         colProps: {
           span: 24,
         },

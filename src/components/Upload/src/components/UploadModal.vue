@@ -1,8 +1,8 @@
 <template>
   <BasicModal
     width="800px"
-    :title="t('component.upload.upload')"
-    :okText="t('component.upload.save')"
+    title="上传"
+    okText="保存"
     v-bind="$attrs"
     @register="register"
     @ok="handleOk"
@@ -35,7 +35,7 @@
         class="upload-modal-toolbar__btn"
       >
         <a-button type="primary">
-          {{ t('component.upload.choose') }}
+          选择文件
         </a-button>
       </Upload>
     </div>
@@ -66,7 +66,6 @@
   import { isFunction } from '@/utils/core/ObjectUtil';
   import { warn } from '@/utils/log/LogUtil';
   import FileList from './FileList.vue';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { ResultEnum } from '@/enums';
   import { get } from 'lodash-es';
 
@@ -87,8 +86,6 @@
   const isUploadingRef = ref(false);
   const fileListRef = ref<FileItem[]>([]);
   const { accept, helpText, maxNumber, maxSize } = toRefs(props);
-
-  const { t } = useI18n();
   const [register, { closeModal }] = useModalInner();
 
   const { getStringAccept, getHelpText } = useUploadType({
@@ -119,10 +116,10 @@
   const getUploadBtnText = computed(() => {
     const someError = fileListRef.value.some((item) => item.status === UploadResultStatus.ERROR);
     return isUploadingRef.value
-      ? t('component.upload.uploading')
+      ? "上传中"
       : someError
-        ? t('component.upload.reUploadFailed')
-        : t('component.upload.startUpload');
+        ? "重新上传失败文件"
+        : "开始上传";
   });
 
   // 上传前校验
@@ -131,7 +128,7 @@
     const { maxSize } = props;
     // 设置最大值，则判断
     if (maxSize && file.size / 1024 / 1024 >= maxSize) {
-      createMessage.error(t('component.upload.maxSizeMultiple', [maxSize]));
+      createMessage.error(`只能上传不超过${maxSize}MB的文件!`);
       return false;
     }
 
@@ -231,7 +228,7 @@
   async function handleStartUpload() {
     const { maxNumber } = props;
     if ((fileListRef.value?.length || 0) + (props.previewFileList?.length || 0) > maxNumber) {
-      return createMessage.warning(t('component.upload.maxNumber', [maxNumber]));
+      return createMessage.warning(`最多只能上传${maxNumber}个文件`);
     }
     try {
       isUploadingRef.value = true;
@@ -258,10 +255,10 @@
     const { maxNumber } = props;
 
     if (fileListRef.value.length > maxNumber) {
-      return createMessage.warning(t('component.upload.maxNumber', [maxNumber]));
+      return createMessage.warning(`最多只能上传${maxNumber}个文件`);
     }
     if (isUploadingRef.value) {
-      return createMessage.warning(t('component.upload.saveWarn'));
+      return createMessage.warning("请等待文件上传后，保存!");
     }
     const fileList: string[] = [];
 
@@ -273,7 +270,7 @@
     }
     // 存在一个上传成功的即可保存
     if (fileList.length <= 0) {
-      return createMessage.warning(t('component.upload.saveError'));
+      return createMessage.warning("没有上传成功的文件，无法保存!");
     }
     fileListRef.value = [];
     closeModal();
@@ -286,7 +283,7 @@
       fileListRef.value = [];
       return true;
     } else {
-      createMessage.warning(t('component.upload.uploadWait'));
+      createMessage.warning("请等待文件上传结束后操作");
       return false;
     }
   }

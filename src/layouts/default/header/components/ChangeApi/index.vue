@@ -1,6 +1,6 @@
 <template>
   <BasicModal
-    :title="t('layout.header.dropdownChangeApi')"
+    title="切换API"
     v-bind="$attrs"
     @register="register"
     @ok="handelSubmit"
@@ -19,7 +19,6 @@
 </template>
 <script lang="ts" setup>
   import { Radio } from 'ant-design-vue';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, useForm } from '@/components/Form';
   import { ref } from 'vue';
@@ -28,7 +27,6 @@
 
   const appStore = useAppStore();
   const RadioGroup = Radio.Group;
-  const { t } = useI18n();
   const [register, { closeModal }] = useModalInner(async () => {
     initData();
   });
@@ -48,7 +46,7 @@
     schemas: [
       {
         field: 'api',
-        label: t('layout.header.dropdownChangeApi'),
+        label: "切换API",
         colProps: {
           span: 24,
         },

@@ -11,7 +11,6 @@ import {
   UserTypeEnum,
 } from '@/enums';
 import { getAuthCache, setAuthCache } from '@/utils/auth';
-import { useI18n } from '@/hooks/web/useI18n';
 import { useMessage } from '@/hooks/web/useMessage';
 import { router } from '@/router';
 import { usePermissionStore } from '@/store/modules/permission';
@@ -268,11 +267,10 @@ export const useUserStore = defineStore({
      */
     confirmLoginOut() {
       const { createConfirm } = useMessage();
-      const { t } = useI18n();
       createConfirm({
         iconType: 'warning',
-        title: () => h('span', t('sys.app.logoutTip')),
-        content: () => h('span', t('sys.app.logoutMessage')),
+        title: () => h('span', "温馨提醒"),
+        content: () => h('span', "是否确认退出系统?"),
         onOk: async () => {
           // 主动登出，不带redirect地址
           await this.logout(true);

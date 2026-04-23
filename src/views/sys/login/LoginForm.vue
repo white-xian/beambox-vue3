@@ -5,7 +5,7 @@
       <Input
         size="large"
         v-model:value="formData.enterpriseName"
-        :placeholder="t('sys.login.enterpriseName')"
+        placeholder="企业账号"
         class="fix-auto-fill"
       />
     </FormItem>
@@ -13,7 +13,7 @@
       <Input
         size="large"
         v-model:value="formData.userName"
-        :placeholder="t('sys.login.userName')"
+        placeholder="员工账号"
         class="fix-auto-fill"
       />
     </FormItem>
@@ -22,7 +22,7 @@
         size="large"
         visibilityToggle
         v-model:value="formData.password"
-        :placeholder="t('sys.login.password')"
+        placeholder="密码"
       />
     </FormItem>
     <ARow v-if="captchaData.captchaOnOff">
@@ -32,7 +32,7 @@
             size="large"
             class="code-input"
             v-model:value="formData.code"
-            :placeholder="t('sys.login.codeImage')"
+            placeholder="验证码"
           />
         </FormItem>
       </ACol>
@@ -51,16 +51,14 @@
       <ACol :span="12">
         <FormItem>
           <!-- No logic, you need to deal with it yourself -->
-          <Checkbox v-model:checked="rememberMe" size="small">
-            {{ t('sys.login.rememberMe') }}
-          </Checkbox>
+          <Checkbox v-model:checked="rememberMe" size="small"> 记住我 </Checkbox>
         </FormItem>
       </ACol>
       <ACol :span="12">
         <FormItem :style="{ 'text-align': 'right' }">
           <!-- No logic, you need to deal with it yourself -->
           <Button type="link" size="small" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)">
-            {{ t('sys.login.forgetPassword') }}
+            忘记密码?
           </Button>
         </FormItem>
       </ACol>
@@ -68,31 +66,25 @@
 
     <FormItem class="enter-x">
       <Button type="primary" size="large" block @click="handleLogin" :loading="loading">
-        {{ t('sys.login.loginButton') }}
+        登录
       </Button>
       <!-- <Button size="large" class="mt-4 enter-x" block @click="handleRegister">
-        {{ t('sys.login.registerButton') }}
+        注册
       </Button> -->
     </FormItem>
     <ARow class="enter-x" :gutter="[16, 16]">
       <ACol :md="8" :xs="24">
-        <Button block @click="setLoginState(LoginStateEnum.MOBILE)">
-          {{ t('sys.login.mobileSignInFormTitle') }}
-        </Button>
+        <Button block @click="setLoginState(LoginStateEnum.MOBILE)"> 手机登录 </Button>
       </ACol>
       <ACol :md="8" :xs="24">
-        <Button block @click="setLoginState(LoginStateEnum.QR_CODE)">
-          {{ t('sys.login.qrSignInFormTitle') }}
-        </Button>
+        <Button block @click="setLoginState(LoginStateEnum.QR_CODE)"> 二维码登录 </Button>
       </ACol>
       <ACol :md="8" :xs="24">
-        <Button block @click="setLoginState(LoginStateEnum.REGISTER)">
-          {{ t('sys.login.registerButton') }}
-        </Button>
+        <Button block @click="setLoginState(LoginStateEnum.REGISTER)"> 注册 </Button>
       </ACol>
     </ARow>
 
-    <Divider class="enter-x">{{ t('sys.login.otherSignIn') }}</Divider>
+    <Divider class="enter-x">其他登录方式</Divider>
 
     <div class="flex justify-evenly enter-x" :class="`${prefixCls}-sign-in-way`">
       <GithubFilled />
@@ -104,7 +96,7 @@
   </Form>
 </template>
 
-<script lang="ts" setup>
+<script setup>
   import { computed, onMounted, reactive, ref, unref } from 'vue';
   import { Button, Checkbox, Col, Divider, Form, Image, Input, Row } from 'ant-design-vue';
   import {
@@ -121,7 +113,6 @@
   import { getEnterpriseNameByDomainName } from '@/api/sys/login.api';
   import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin';
   import { useDesign } from '@/hooks/web/useDesign';
-  import { useI18n } from '@/hooks/web/useI18n';
   import {
     ENTERPRISE_NAME_SESSION_CACHE_KEY,
     PASSWORD_SESSION_CACHE_KEY,
@@ -133,7 +124,6 @@
   const ARow = Row;
   const FormItem = Form.Item;
   const InputPassword = Input.Password;
-  const { t } = useI18n();
   const { notification, createErrorModal } = useMessage();
   const { prefixCls } = useDesign('login');
   const userStore = useUserStore();
@@ -143,7 +133,7 @@
 
   const formRef = ref();
   const loading = ref(false);
-  const hasDomainName = ref<boolean>(false);
+  const hasDomainName = ref(false);
   const rememberMe = ref(localStorage.getItem(REMEMBER_ME_SESSION_CACHE_KEY) === 'true' || false);
 
   const formData = reactive({
@@ -181,15 +171,15 @@
       });
       if (userInfo) {
         notification.success({
-          message: t('sys.login.loginSuccessTitle'),
-          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.user.nickName}`,
+          message: '登录成功',
+          description: `${'欢迎回来'}: ${userInfo.user.nickName}`,
           duration: 3,
         });
       }
     } catch (error) {
       createErrorModal({
-        title: t('sys.api.errorTip'),
-        content: (error as unknown as Error).message || t('sys.api.networkExceptionMsg'),
+        title: '错误提示',
+        content: error?.message || '网络异常，请检查您的网络连接是否正常!',
         getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
       });
       await handleCodeImage();

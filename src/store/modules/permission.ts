@@ -1,7 +1,6 @@
 import type { AppRouteRecordRaw, Menu } from '@/router/types';
 import { defineStore } from 'pinia';
 import { store } from '@/store';
-import { useI18n } from '@/hooks/web/useI18n';
 import { useUserStore } from './user';
 import { toRaw } from 'vue';
 import { flatMultiLevelRoutes, transformObjToRoute } from '@/router/helper/routeHelper';
@@ -112,7 +111,6 @@ export const usePermissionStore = defineStore({
 
     // 构建路由
     async buildRoutesAction(): Promise<AppRouteRecordRaw[]> {
-      const { t } = useI18n();
       const userStore = useUserStore();
 
       let routes: AppRouteRecordRaw[] = [];
@@ -168,7 +166,7 @@ export const usePermissionStore = defineStore({
       };
 
       const { createMessage } = useMessage();
-      createMessage.loading(t('sys.app.menuLoading'));
+      createMessage.loading("菜单加载中...");
 
       // !Simulate to obtain permission codes from the background,
       // this function may only need to be executed once, and the actual project can be put at the right time by itself

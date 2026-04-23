@@ -13,19 +13,19 @@
       <Menu @click="handleMenuClick">
         <MenuItem
           key="userCenter"
-          :text="t('layout.header.userCenter')"
+          text="个人中心"
           icon="ion:document-text-outline"
           v-if="getShowUserCenter"
         />
         <MenuItem
           key="enterpriseCenter"
-          :text="t('layout.header.enterpriseCenter')"
+          text="企业中心"
           icon="ion:document-text-outline"
           v-if="getShowEnterpriseCenter"
         />
         <MenuItem
           key="doc"
-          :text="t('layout.header.dropdownItemDoc')"
+          text="文档"
           icon="ion:document-text-outline"
           v-if="getShowDoc"
         />
@@ -33,18 +33,18 @@
         <MenuItem
           v-if="getShowApi"
           key="api"
-          :text="t('layout.header.dropdownChangeApi')"
+          text="切换API"
           icon="ant-design:swap-outlined"
         />
         <MenuItem
           v-if="getUseLockPage"
           key="lock"
-          :text="t('layout.header.tooltipLock')"
+          text="锁定屏幕"
           icon="ion:lock-closed-outline"
         />
         <MenuItem
           key="logout"
-          :text="t('layout.header.dropdownItemLoginOut')"
+          text="退出系统"
           icon="ion:power-outline"
         />
       </Menu>
@@ -61,7 +61,6 @@
   import { DOC_URL } from '@/settings/siteSetting';
   import { useUserStore } from '@/store/modules/user';
   import { useHeaderSetting } from '@/hooks/setting/useHeaderSetting';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { useDesign } from '@/hooks/web/useDesign';
   import { useModal } from '@/components/Modal';
   import headerImg from '@/assets/images/header.jpg';
@@ -84,7 +83,6 @@
   });
 
   const { prefixCls } = useDesign('header-user-dropdown');
-  const { t } = useI18n();
   const { getShowDoc, getShowUserCenter, getShowEnterpriseCenter, getUseLockPage, getShowApi } =
     useHeaderSetting();
   const go = useGo();

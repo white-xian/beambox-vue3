@@ -7,11 +7,11 @@
         preIcon="carbon:cloud-upload"
         :disabled="disabled"
       >
-        {{ t('component.upload.upload') }}
+        上传
       </a-button>
       <Tooltip placement="bottom" v-if="showPreview">
         <template #title>
-          {{ t('component.upload.uploaded') }}
+          已上传
           <template v-if="fileList.length">
             {{ fileList.length }}
           </template>
@@ -54,7 +54,6 @@
   import { useModal } from '@/components/Modal';
   import { uploadContainerProps } from './props';
   import { omit } from 'lodash-es';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { isArray, isObject, isString } from '@/utils/core/ObjectUtil';
   import UploadModal from './components/UploadModal.vue';
   import UploadPreviewModal from './components/UploadPreviewModal.vue';
@@ -68,7 +67,6 @@
   const emit = defineEmits(['change', 'delete', 'preview-delete', 'update:value']);
 
   const attrs = useAttrs();
-  const { t } = useI18n();
   // 上传modal
   const [registerUploadModal, { openModal: openUploadModal }] = useModal();
 

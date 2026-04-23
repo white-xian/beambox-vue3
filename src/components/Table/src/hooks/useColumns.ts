@@ -4,7 +4,6 @@ import type { ComputedRef } from 'vue';
 import { computed, reactive, ref, Ref, toRaw, unref, watch } from 'vue';
 import { renderEditCell } from '../components/editable';
 import { usePermission } from '@/hooks/web/usePermission';
-import { useI18n } from '@/hooks/web/useI18n';
 import { isArray, isBoolean, isFunction, isMap, isString } from '@/utils/core/ObjectUtil';
 import { cloneDeep, isEqual } from 'lodash-es';
 import { formatToDate } from '@/utils/core/DateUtil';
@@ -43,7 +42,6 @@ function handleIndexColumn(
   getPaginationRef: ComputedRef<boolean | PaginationProps>,
   columns: BasicColumn[],
 ) {
-  const { t } = useI18n();
 
   const { showIndexColumn, indexColumnProps, isTreeTable } = unref(propsRef);
 
@@ -67,7 +65,7 @@ function handleIndexColumn(
   columns.unshift({
     flag: INDEX_COLUMN_FLAG,
     width: 60,
-    title: t('component.table.index'),
+    title: "序号",
     align: 'center',
     customRender: ({ index }) => {
       const getPagination = unref(getPaginationRef);

@@ -1,7 +1,7 @@
 <template>
   <Tooltip placement="top">
     <template #title>
-      <span>{{ t('component.table.settingDens') }}</span>
+      <span>密度</span>
     </template>
 
     <Dropdown placement="bottom" :trigger="['click']" :getPopupContainer="getPopupContainer">
@@ -9,13 +9,13 @@
       <template #overlay>
         <Menu @click="handleTitleClick" selectable v-model:selectedKeys="selectedKeysRef">
           <Menu.Item key="default">
-            <span>{{ t('component.table.settingDensDefault') }}</span>
+            <span>默认</span>
           </Menu.Item>
           <Menu.Item key="middle">
-            <span>{{ t('component.table.settingDensMiddle') }}</span>
+            <span>中等</span>
           </Menu.Item>
           <Menu.Item key="small">
-            <span>{{ t('component.table.settingDensSmall') }}</span>
+            <span>紧凑</span>
           </Menu.Item>
         </Menu>
       </template>
@@ -28,7 +28,6 @@
   import { onMounted, ref } from 'vue';
   import { Dropdown, Menu, type MenuProps, Tooltip } from 'ant-design-vue';
   import { ColumnHeightOutlined } from '@ant-design/icons-vue';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { useTableContext } from '../../hooks/useTableContext';
   import { getPopupContainer } from '@/utils';
 
@@ -39,7 +38,6 @@
   defineOptions({ name: 'SizeSetting' });
 
   const table = useTableContext();
-  const { t } = useI18n();
 
   const selectedKeysRef = ref<SizeType[]>([table.getSize()]);
 

@@ -1,6 +1,5 @@
 import type { AppRouteModule } from '@/router/types';
 import { LAYOUT } from '@/router/constant';
-import { t } from '@/hooks/web/useI18n';
 
 const userCenter: AppRouteModule = {
   path: '/userCenter',
@@ -10,7 +9,7 @@ const userCenter: AppRouteModule = {
   meta: {
     hideChildrenInMenu: true,
     icon: 'simple-icons:aboutdotme',
-    title: t('layout.header.userCenter'),
+    title: "个人中心",
     orderNo: 100000,
     hideMenu: true,
   },
@@ -20,7 +19,7 @@ const userCenter: AppRouteModule = {
       name: 'AboutPage',
       component: () => import('@/views/sys/userCenter/index.vue'),
       meta: {
-        title: t('layout.header.userCenter'),
+        title: "个人中心",
         icon: 'simple-icons:aboutdotme',
         hideMenu: true,
       },
