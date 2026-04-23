@@ -7,7 +7,7 @@ import { ContentEnum, ThemeEnum } from '@/enums';
 
 type RootSetting = Omit<
   ProjectConfig,
-  'locale' | 'headerSetting' | 'menuSetting' | 'multiTabsSetting'
+  'headerSetting' | 'menuSetting' | 'multiTabsSetting'
 >;
 
 export function useRootSetting() {

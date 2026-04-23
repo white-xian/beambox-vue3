@@ -31,7 +31,7 @@
           @click="toggleAdvanced"
           v-if="showAdvancedButton && !hideAdvanceBtn"
         >
-          {{ isAdvanced ? t('component.form.putAway') : t('component.form.unfold') }}
+          {{ isAdvanced ? "收起" : "展开" }}
           <BasicArrow class="ml-1" :expand="!isAdvanced" up />
         </Button>
         <slot name="advanceAfter"></slot>
@@ -47,7 +47,6 @@
   import { Button, ButtonProps } from '@/components/Button';
   import { BasicArrow } from '@/components/Basic';
   import { useFormContext } from '../hooks/useFormContext';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { propTypes } from '@/utils/propTypes';
 
   defineOptions({ name: 'BasicFormAction' });
@@ -75,8 +74,6 @@
   });
 
   const emit = defineEmits(['toggle-advanced']);
-
-  const { t } = useI18n();
   const { resetAction, submitAction } = useFormContext();
 
   const actionColOpt = computed(() => {
@@ -95,7 +92,7 @@
   const getResetBtnOptions = computed((): ButtonProps => {
     return Object.assign(
       {
-        text: t('common.resetText'),
+        text: "重置",
       },
       props.resetButtonOptions,
     );
@@ -104,7 +101,7 @@
   const getSubmitBtnOptions = computed((): ButtonProps => {
     return Object.assign(
       {
-        text: t('common.queryText'),
+        text: "查询",
       },
       props.submitButtonOptions,
     );

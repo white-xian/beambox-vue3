@@ -16,7 +16,7 @@
     <template #notFoundContent v-if="loading">
       <span>
         <LoadingOutlined spin class="mr-1" />
-        {{ t('component.form.apiSelectNotFound') }}
+        请等待数据加载完成...
       </span>
     </template>
   </Select>
@@ -30,7 +30,6 @@
   import { useRuleFormItem } from '@/hooks/component/useFormItem';
   import { assignIn, get, isEqual, omit } from 'lodash-es';
   import { LoadingOutlined } from '@ant-design/icons-vue';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { propTypes } from '@/utils/propTypes';
   import { useDebounceFn } from '@vueuse/core';
 
@@ -93,7 +92,6 @@
   const isFirstLoaded = ref(false);
   const emitData = ref<OptionsItem[]>([]);
   const searchParams = ref<any>({});
-  const { t } = useI18n();
 
   // Embedded in the form, just use the hook binding to perform form verification
   const [state] = useRuleFormItem(props, 'value', 'change', emitData);

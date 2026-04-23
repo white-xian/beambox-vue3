@@ -6,7 +6,6 @@
   import './adapter.js';
   import type { Ref } from 'vue';
   import {
-    computed,
     nextTick,
     onBeforeUnmount,
     onDeactivated,
@@ -17,13 +16,10 @@
   } from 'vue';
   import Vditor from 'vditor';
   import 'vditor/dist/index.css';
-  import { useLocale } from '@/locales/useLocale';
   import { useModalContext } from '../../Modal';
   import { useRootSetting } from '@/hooks/setting/useRootSetting';
   import { onMountedOrActivated } from '@xueyi/hooks';
   import { getTheme } from './getTheme';
-
-  type Lang = 'zh_CN' | 'en_US' | 'ja_JP' | 'ko_KR' | undefined;
 
   defineOptions({ inheritAttrs: false });
 
@@ -42,7 +38,6 @@
 
   const modalFn = useModalContext();
 
-  const { getLocale } = useLocale();
   const { getDarkMode } = useRootSetting();
   const valueRef = ref(props.value || '');
 
@@ -72,24 +67,6 @@
     },
   );
 
-  const getCurrentLang = computed((): 'zh_CN' | 'en_US' | 'ja_JP' | 'ko_KR' => {
-    let lang: Lang;
-    switch (unref(getLocale)) {
-      case 'en':
-        lang = 'en_US';
-        break;
-      case 'ja':
-        lang = 'ja_JP';
-        break;
-      case 'ko':
-        lang = 'ko_KR';
-        break;
-      default:
-        lang = 'zh_CN';
-    }
-    return lang;
-  });
-
   function init() {
     const wrapEl = unref(wrapRef);
     if (!wrapEl) return;
@@ -97,7 +74,7 @@
     const insEditor = new Vditor(wrapEl, {
       // 设置外观主题
       theme: getTheme(getDarkMode.value) as any,
-      lang: unref(getCurrentLang),
+      lang: 'zh_CN',
       mode: 'sv',
       fullscreen: {
         index: 520,

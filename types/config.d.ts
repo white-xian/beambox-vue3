@@ -11,8 +11,6 @@ import {
   TriggerEnum,
 } from '@/enums/basic';
 
-export type LocaleType = 'zh_CN' | 'en' | 'ru' | 'ja' | 'ko';
-
 export interface MenuSetting {
   bgColor: string;
   fixed: boolean;
@@ -64,16 +62,6 @@ export interface HeaderSetting {
   showNotice: boolean;
   showSearch: boolean;
   showApi: boolean;
-}
-
-export interface LocaleSetting {
-  showPicker: boolean;
-  // Current language
-  locale: LocaleType;
-  // default language
-  fallback: LocaleType;
-  // available Locales
-  availableLocales: LocaleType[];
 }
 
 export interface TransitionSetting {

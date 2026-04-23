@@ -1,7 +1,7 @@
 <template>
   <BasicModal
     width="800px"
-    :title="t('component.upload.preview')"
+    title="预览"
     class="upload-preview-modal"
     v-bind="$attrs"
     @register="register"
@@ -19,7 +19,6 @@
   import { BaseFileItem, FileBasicColumn, PreviewFileItem } from '../types/typing';
   import { downloadByUrl } from '@/utils/file/download';
   import { createPreviewActionColumn, createPreviewColumns } from './data';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { isArray, isFunction } from '@/utils/core/ObjectUtil';
   import { BasicColumn } from '@/components/Table';
   import { useMessage } from '@/hooks/web/useMessage';
@@ -35,7 +34,6 @@
   let actionColumn: any;
 
   const [register] = useModalInner();
-  const { t } = useI18n();
 
   const fileListRef = ref<BaseFileItem[] | Array<any>>([]);
   watch(
@@ -96,7 +94,7 @@
     let { record = {}, valueKey = 'url', uidKey = 'uid' } = obj;
     const { maxNumber } = props;
     if (fileListRef.value.length + fileListRef.value.length > maxNumber) {
-      return createMessage.warning(t('component.upload.maxNumber', [maxNumber]));
+      return createMessage.warning(`最多只能上传${maxNumber}个文件`);
     }
     record[uidKey] = record[uidKey] ?? buildUUID();
     fileListRef.value = [...fileListRef.value, record];

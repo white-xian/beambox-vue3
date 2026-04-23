@@ -6,9 +6,6 @@ import { useSortable } from '@/hooks/web/useSortable';
 import { useMultipleTabStore } from '@/store/modules/multipleTab';
 import { isNil } from '@/utils/core/ObjectUtil';
 import projectSetting from '@/settings/projectSetting';
-import { useI18n } from '@/hooks/web/useI18n';
-
-const { t } = useI18n();
 
 export function initAffixTabs(): string[] {
   const affixList = ref<RouteLocationNormalized[]>([]);
@@ -67,7 +64,7 @@ export function useTabsDrag(affixTextList: string[]) {
       filter: (_evt, target: HTMLElement) => {
         const text = target.innerText;
         if (!text) return false;
-        return affixTextList.map((res) => t(res)).includes(text);
+        return affixTextList.includes(text);
       },
       onEnd: (evt) => {
         const { oldIndex, newIndex } = evt;

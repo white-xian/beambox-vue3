@@ -7,14 +7,14 @@
           class="fix-auto-fill"
           size="large"
           v-model:value="formData.account"
-          :placeholder="t('sys.login.userName')"
+          placeholder="员工账号"
         />
       </FormItem>
       <FormItem name="mobile" class="enter-x">
         <Input
           size="large"
           v-model:value="formData.mobile"
-          :placeholder="t('sys.login.mobile')"
+          placeholder="手机号码"
           class="fix-auto-fill"
         />
       </FormItem>
@@ -23,14 +23,14 @@
           size="large"
           class="fix-auto-fill"
           v-model:value="formData.sms"
-          :placeholder="t('sys.login.smsCode')"
+          placeholder="短信验证码"
         />
       </FormItem>
       <FormItem name="password" class="enter-x">
         <StrengthMeter
           size="large"
           v-model:value="formData.password"
-          :placeholder="t('sys.login.password')"
+          placeholder="密码"
         />
       </FormItem>
       <FormItem name="confirmPassword" class="enter-x">
@@ -38,14 +38,14 @@
           size="large"
           visibilityToggle
           v-model:value="formData.confirmPassword"
-          :placeholder="t('sys.login.confirmPassword')"
+          placeholder="确认密码"
         />
       </FormItem>
 
       <FormItem class="enter-x" name="policy">
         <!-- No logic, you need to deal with it yourself -->
         <Checkbox v-model:checked="formData.policy" size="small">
-          {{ t('sys.login.policy') }}
+          我同意xxx隐私政策
         </Checkbox>
       </FormItem>
 
@@ -57,10 +57,10 @@
         @click="handleRegister"
         :loading="loading"
       >
-        {{ t('sys.login.registerButton') }}
+        注册
       </Button>
       <Button size="large" block class="mt-4 enter-x" @click="handleBackLogin">
-        {{ t('sys.login.backSignIn') }}
+        返回
       </Button>
     </Form>
   </template>
@@ -72,12 +72,10 @@
   import { Button, Checkbox, Form, Input } from 'ant-design-vue';
   import { StrengthMeter } from '@/components/StrengthMeter';
   import { CountdownInput } from '@/components/CountDown';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin';
 
   const FormItem = Form.Item;
   const InputPassword = Input.Password;
-  const { t } = useI18n();
   const { handleBackLogin, getLoginState } = useLoginState();
 
   const formRef = ref();

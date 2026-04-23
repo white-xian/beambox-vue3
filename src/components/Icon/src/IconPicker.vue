@@ -1,7 +1,7 @@
 <template>
   <Input
     :style="{ width }"
-    :placeholder="t('component.icon.placeholder')"
+    placeholder="点击选择图标"
     :class="prefixCls"
     v-model:value="currentSelect"
     @click="triggerPopover"
@@ -18,7 +18,7 @@
         <template #title>
           <div class="flex justify-between">
             <Input
-              :placeholder="t('component.icon.search')"
+              placeholder="搜索图标"
               @change="debounceHandleSearchChange"
               allowClear
             />
@@ -88,7 +88,6 @@
   import iconsData from '../data/icons.data';
   import { usePagination } from '@/hooks/web/usePagination';
   import { useDebounceFn } from '@vueuse/core';
-  import { useI18n } from '@/hooks/web/useI18n';
   import svgIcons from 'virtual:svg-icons-names';
   import { copyText } from '@/utils/copyTextToClipboard';
 
@@ -141,8 +140,6 @@
       trigger.value.click();
     }
   };
-
-  const { t } = useI18n();
   const { prefixCls } = useDesign('icon-picker');
 
   const debounceHandleSearchChange = useDebounceFn(handleSearchChange, 100);
@@ -171,7 +168,7 @@
   function handleClick(icon: string) {
     currentSelect.value = icon;
     if (props.copy) {
-      copyText(icon, t('component.icon.copy'));
+      copyText(icon, "复制图标成功!");
     }
   }
 

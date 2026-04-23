@@ -7,9 +7,9 @@
         class="enter-x flex justify-center xl:justify-start"
         :width="280"
       />
-      <Divider class="enter-x">{{ t('sys.login.scanSign') }}</Divider>
+      <Divider class="enter-x">扫码后点击"确认"，即可完成登录</Divider>
       <Button size="large" block class="mt-4 enter-x" @click="handleBackLogin">
-        {{ t('sys.login.backSignIn') }}
+        返回
       </Button>
     </div>
   </template>
@@ -20,12 +20,9 @@
   import LoginFormTitle from './LoginFormTitle.vue';
   import { Button, Divider } from 'ant-design-vue';
   import { QrCode } from '@/components/Qrcode';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { LoginStateEnum, useLoginState } from './useLogin';
 
   const qrCodeUrl = 'https://vvbin.cn/next/login';
-
-  const { t } = useI18n();
   const { handleBackLogin, getLoginState } = useLoginState();
 
   const getShow = computed(() => unref(getLoginState) === LoginStateEnum.QR_CODE);

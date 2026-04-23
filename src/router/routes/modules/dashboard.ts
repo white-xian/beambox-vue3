@@ -1,6 +1,5 @@
 import type { AppRouteModule } from '@/router/types';
 import { LAYOUT } from '@/router/constant';
-import { t } from '@/hooks/web/useI18n';
 
 const dashboard: AppRouteModule = {
   path: '/dashboard',
@@ -10,7 +9,7 @@ const dashboard: AppRouteModule = {
   meta: {
     orderNo: 10,
     icon: 'ion:grid-outline',
-    title: t('routes.dashboard.dashboard'),
+    title: "首页",
   },
   children: [
     {
@@ -19,7 +18,7 @@ const dashboard: AppRouteModule = {
       component: () => import('@/views/dashboard/analysis/index.vue'),
       meta: {
         affix: false,
-        title: t('routes.dashboard.analysis'),
+        title: "分析页",
       },
     },
     {
@@ -28,7 +27,7 @@ const dashboard: AppRouteModule = {
       component: () => import('@/views/dashboard/workbench/index.vue'),
       meta: {
         affix: true,
-        title: t('routes.dashboard.workbench'),
+        title: "工作台",
       },
     },
   ],

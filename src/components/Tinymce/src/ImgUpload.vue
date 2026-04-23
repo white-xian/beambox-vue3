@@ -9,7 +9,7 @@
       accept=".jpg,.jpeg,.gif,.png,.webp"
     >
       <a-button type="primary" v-bind="{ ...getButtonProps }">
-        {{ t('component.upload.imgUpload') }}
+        图片上传
       </a-button>
     </Upload>
   </div>
@@ -19,7 +19,6 @@
   import { computed } from 'vue';
   import { Upload } from 'ant-design-vue';
   import { useDesign } from '@/hooks/web/useDesign';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { fileUploadApi } from '@/api/sys/upload.api';
   import { AxiosProgressEvent } from 'axios';
   import { UploadRequestOption } from 'ant-design-vue/lib/vc-upload/interface';
@@ -39,8 +38,6 @@
   const emit = defineEmits(['uploading', 'done', 'error']);
 
   let uploading = false;
-
-  const { t } = useI18n();
   const { prefixCls } = useDesign('tinymce-img-upload');
 
   const getButtonProps = computed(() => {

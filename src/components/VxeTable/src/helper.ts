@@ -1,9 +1,6 @@
 import { ComponentType } from './componentType';
-import { useI18n } from '@/hooks/web/useI18n';
 import XEUtils from 'xe-utils';
 import { ignoreTrimInputComponents } from './const';
-
-const { t } = useI18n();
 
 /**
  * @description: 生成placeholder
@@ -11,12 +8,12 @@ const { t } = useI18n();
 export function createPlaceholderMessage(component: ComponentType) {
   if (!component) return;
   if (component.includes('RangePicker')) {
-    return [t('common.chooseText'), t('common.chooseText')];
+    return ["请选择", "请选择"];
   }
   if (component.includes('Input') || component.includes('Complete') || component.includes('Rate')) {
-    return t('common.inputText');
+    return "请输入";
   } else {
-    return t('common.chooseText');
+    return "请选择";
   }
 }
 

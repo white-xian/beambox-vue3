@@ -25,7 +25,6 @@
   import { TabContentProps } from '../types';
 
   import { useDesign } from '@/hooks/web/useDesign';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { useTabDropdown } from '../useTabDropdown';
 
   defineOptions({ name: 'TabContent' });
@@ -39,11 +38,10 @@
   });
 
   const { prefixCls } = useDesign('multiple-tabs-content');
-  const { t } = useI18n();
 
   const getTitle = computed(() => {
     const { tabItem: { meta } = {} } = props;
-    return meta && t(meta.title as string);
+    return meta?.title as string;
   });
 
   const getIsTabs = computed(() => !props.isExtra);

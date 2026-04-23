@@ -1,7 +1,6 @@
 import type { AppRouteModule, AppRouteRecordRaw } from '@/router/types';
 import { PAGE_NOT_FOUND_ROUTE, REDIRECT_ROUTE } from '@/router/routes/basic';
 import { PageEnum } from '@/enums';
-import { t } from '@/hooks/web/useI18n';
 import userCenter from '@/router/routes/modules/userCenter';
 
 // import.meta.glob() 直接引入所有的模块 Vite 独有的功能
@@ -32,7 +31,7 @@ export const LoginRoute: AppRouteRecordRaw = {
   name: 'Login',
   component: () => import('@/views/sys/login/Login.vue'),
   meta: {
-    title: t('routes.basic.login'),
+    title: "登录",
   },
 };
 

@@ -71,7 +71,6 @@
   import { onMountedOrActivated } from '@xueyi/hooks';
   import { useDesign } from '@/hooks/web/useDesign';
   import { isNumber } from '@/utils/core/ObjectUtil';
-  import { useLocale } from '@/locales/useLocale';
   import { useAppStore } from '@/store/modules/app';
 
   defineOptions({ name: 'Tinymce', inheritAttrs: false });
@@ -136,10 +135,7 @@
     return appStore.getDarkMode === 'light' ? 'oxide' : 'oxide-dark';
   });
 
-  const langName = computed(() => {
-    const lang = useLocale().getLocale.value;
-    return ['zh_CN', 'en'].includes(lang) ? lang : 'zh_CN';
-  });
+  const langName = 'zh_CN';
 
   const initOptions = computed((): RawEditorSettings => {
     const { height, options, toolbar, plugins } = props;
@@ -150,8 +146,8 @@
       toolbar,
       menubar: 'file edit insert view format table',
       plugins,
-      language_url: publicPath + 'resource/tinymce/langs/' + langName.value + '.js',
-      language: langName.value,
+      language_url: publicPath + 'resource/tinymce/langs/' + langName + '.js',
+      language: langName,
       branding: false,
       default_link_target: '_blank',
       link_title: false,

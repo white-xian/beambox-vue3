@@ -43,7 +43,7 @@
             :icon="item.icon || (item.meta && item.meta.icon)"
           />
           <p :class="`${prefixCls}-module__name`">
-            {{ t(item?.meta?.title || item.name) }}
+            {{ item?.meta?.title || item.name }}
           </p>
         </li>
       </ul>
@@ -98,7 +98,6 @@
   import { useDragLine } from './useLayoutSider';
   import { useGlobSetting } from '@/hooks/setting';
   import { useDesign } from '@/hooks/web/useDesign';
-  import { useI18n } from '@/hooks/web/useI18n';
   import { useGo } from '@/hooks/web/usePage';
   import { SIDE_BAR_MINI_WIDTH, SIDE_BAR_SHOW_TIT_MINI_WIDTH } from '@/enums';
   import vClickOutside from '@/directives/clickOutside';
@@ -123,7 +122,6 @@
 
   const { prefixCls } = useDesign('layout-mix-sider');
   const go = useGo();
-  const { t } = useI18n();
   const {
     getMenuWidth,
     getCanDrag,

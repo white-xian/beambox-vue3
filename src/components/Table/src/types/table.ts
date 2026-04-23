@@ -301,7 +301,7 @@ export interface BasicTableProps<T = any> {
   indentSize?: number;
 
   /**
-   * i18n text including filter, sort, empty text, etc
+   * Table display text including filter, sort, empty text, etc.
    * @default { filterConfirm: 'Ok', filterReset: 'Reset', emptyText: 'No Data' }
    * @type object
    */

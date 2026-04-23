@@ -3,11 +3,10 @@ import { type AnyFunction } from '@xueyi/types';
 import { nextTick, onBeforeMount, Ref, ref, unref } from 'vue';
 import { getMenus } from '@/router/menus';
 import { cloneDeep } from 'lodash-es';
-import { filter, forEach } from '@/utils/helper/treeHelper';
+import { filter } from '@/utils/helper/treeHelper';
 import { useGo } from '@/hooks/web/usePage';
 import { useScrollTo } from '@xueyi/hooks';
 import { onKeyStroke, useDebounceFn } from '@vueuse/core';
-import { useI18n } from '@/hooks/web/useI18n';
 
 export interface SearchResult {
   name: string;
@@ -36,16 +35,12 @@ export function useMenuSearch(refs: Ref<HTMLElement[]>, scrollWrap: Ref, emit: A
 
   let menuList: Menu[] = [];
 
-  const { t } = useI18n();
   const go = useGo();
   const handleSearch = useDebounceFn(search, 200);
 
   onBeforeMount(async () => {
     const list = await getMenus();
     menuList = cloneDeep(list);
-    forEach(menuList, (item) => {
-      item.name = t(item.name);
-    });
   });
 
   function search(e: ChangeEvent) {
