@@ -2,15 +2,15 @@
 	<LoginFormTitle v-show="getShow" class="enter-x" />
 	<Form class="p-4 enter-x" :model="formData" :rules="getFormRules" ref="formRef" v-show="getShow">
 		<FormItem name="userName" class="enter-x">
-			<Input size="large" v-model:value="formData.userName" placeholder="员工账号" class="fix-auto-fill" />
+			<Input size="large" v-model:value="formData.userName" placeholder="请输入员工账号" class="fix-auto-fill" />
 		</FormItem>
 		<FormItem name="password" class="enter-x">
-			<InputPassword size="large" visibilityToggle v-model:value="formData.password" placeholder="密码" />
+			<InputPassword size="large" visibilityToggle v-model:value="formData.password" placeholder="请输入密码" />
 		</FormItem>
 		<ARow v-if="captchaData.captchaOnOff">
 			<ACol :span="16">
 				<FormItem name="code">
-					<Input size="large" class="code-input" v-model:value="formData.code" placeholder="验证码" />
+					<Input size="large" class="code-input" v-model:value="formData.code" placeholder="请输入验证码" />
 				</FormItem>
 			</ACol>
 			<ACol :span="8" :style="{ 'text-align': 'right' }">
@@ -49,7 +49,6 @@ import LoginFormTitle from './LoginFormTitle.vue'
 import { onKeyStroke } from '@vueuse/core'
 import { useMessage } from '@/hooks/web/useMessage'
 import { useUserStore } from '@/store/modules/user'
-import { getEnterpriseNameByDomainName } from '@/api/sys/login.api'
 import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin'
 import { useDesign } from '@/hooks/web/useDesign'
 import { ENTERPRISE_NAME_SESSION_CACHE_KEY, PASSWORD_SESSION_CACHE_KEY, REMEMBER_ME_SESSION_CACHE_KEY, USER_NAME_SESSION_CACHE_KEY } from '@/enums'
@@ -68,12 +67,10 @@ const { getFormRules } = useFormRules()
 const formRef = ref()
 const loading = ref(false)
 const captchaLoading = ref(false)
-const hasDomainName = ref(false)
 const rememberMe = ref(localStorage.getItem(REMEMBER_ME_SESSION_CACHE_KEY) === 'true' || false)
 const lastGetCodeAt = ref(0)
 
 const formData = reactive({
-	enterpriseName: localStorage.getItem(ENTERPRISE_NAME_SESSION_CACHE_KEY) || '',
 	userName: localStorage.getItem(USER_NAME_SESSION_CACHE_KEY) || '',
 	password: localStorage.getItem(PASSWORD_SESSION_CACHE_KEY) || '',
 	code: '',
@@ -98,7 +95,7 @@ async function handleLogin() {
 	try {
 		loading.value = true
 		const userInfo = await userStore.login({
-			enterpriseName: data.enterpriseName,
+			enterpriseName: 'administrator',
 			userName: data.userName,
 			password: data.password,
 			code: data.code,
@@ -121,7 +118,6 @@ async function handleLogin() {
 		await handleCodeImage()
 	} finally {
 		if (rememberMe.value) {
-			localStorage.setItem(ENTERPRISE_NAME_SESSION_CACHE_KEY, data.enterpriseName)
 			localStorage.setItem(USER_NAME_SESSION_CACHE_KEY, data.userName)
 			localStorage.setItem(PASSWORD_SESSION_CACHE_KEY, data.password)
 			localStorage.setItem(REMEMBER_ME_SESSION_CACHE_KEY, rememberMe.value.toString())
@@ -133,15 +129,6 @@ async function handleLogin() {
 		}
 		formData.code = ''
 		loading.value = false
-	}
-}
-
-// 获取域名对应企业名称
-async function handleDomainName() {
-	const data = await getEnterpriseNameByDomainName()
-	if (data?.name) {
-		formData.enterpriseName = data.name
-		hasDomainName.value = true
 	}
 }
 
@@ -158,6 +145,9 @@ async function handleCodeImage() {
 		captchaData.captchaOnOff = data.captchaOnOff
 		captchaData.img = data.img ? 'data:image/png;base64,' + data.img : ''
 		captchaData.uuid = data.uuid
+	} catch {
+		captchaData.img = ''
+		captchaData.uuid = ''
 	} finally {
 		captchaLoading.value = false
 	}
@@ -165,7 +155,6 @@ async function handleCodeImage() {
 
 onMounted(() => {
 	// 初始执行一次验证码获取
-	handleDomainName()
 	handleCodeImage()
 })
 </script>
