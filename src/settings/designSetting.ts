@@ -2,9 +2,13 @@ import { ThemeEnum } from '@/enums';
 
 export const prefixCls = 'xueyi';
 
-export const multipleTabHeight = 30;
+export const multipleTabHeight = 34;
 
 export const darkMode = ThemeEnum.LIGHT;
+
+export const DEFAULT_SIDER_BG_COLOR = '#1e2a3a';
+export const DEFAULT_SIDER_EXPANDED_BG_COLOR = '#233a56';
+export const DEFAULT_SIDER_ACTIVE_BG_COLOR = '#365068';
 
 // 页脚固定高度
 export const footerHeight = 75;
@@ -43,7 +47,7 @@ export const HEADER_PRESET_BG_COLOR_LIST: string[] = [
 
 // sider preset color
 export const SIDE_BAR_BG_COLOR_LIST: string[] = [
-  '#001529',
+  DEFAULT_SIDER_BG_COLOR,
   '#212121',
   '#273352',
   '#ffffff',
