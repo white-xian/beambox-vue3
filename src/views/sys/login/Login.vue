@@ -98,7 +98,7 @@ html[data-theme='dark'] {
 	overflow: hidden;
 
 	/* stylelint-disable-next-line media-query-no-invalid */
-	@media (max-width: @screen-xl) {
+	@media (max-width: @screen-lg-max) {
 		background-color: #293146;
 
 		.@{prefix-cls}-form {
@@ -119,7 +119,7 @@ html[data-theme='dark'] {
 		background-size: auto 100%;
 		content: '';
 		/* stylelint-disable-next-line media-query-no-invalid */
-		@media (max-width: @screen-xl) {
+		@media (max-width: @screen-lg-max) {
 			display: none;
 		}
 	}
@@ -130,12 +130,19 @@ html[data-theme='dark'] {
 		height: 30px;
 
 		&__title {
-			font-size: 16px;
+			margin-left: 16px !important;
+			font-size: 18px;
+			line-height: 1;
 			color: #fff;
+			transform: translateY(4px);
 		}
 
 		img {
-			width: 32px;
+			width: 155px;
+			height: 38px;
+			object-fit: contain;
+			display: block;
+			flex-shrink: 0;
 		}
 	}
 
@@ -182,28 +189,16 @@ html[data-theme='dark'] {
 		}
 	}
 
-	input:not([type='checkbox']) {
-		min-width: 360px;
-		/* stylelint-disable-next-line media-query-no-invalid */
-		@media (max-width: @screen-xl) {
-			min-width: 320px;
-		}
-		/* stylelint-disable-next-line media-query-no-invalid */
-		@media (max-width: @screen-lg) {
-			min-width: 260px;
-		}
-		/* stylelint-disable-next-line media-query-no-invalid */
-		@media (max-width: @screen-md) {
-			min-width: 240px;
-		}
-		/* stylelint-disable-next-line media-query-no-invalid */
-		@media (max-width: @screen-sm) {
-			min-width: 160px;
-		}
+	&-form {
+		width: 100%;
+		max-width: 440px;
 	}
 
-	.@{countdown-prefix-cls} input {
-		min-width: unset;
+	.ant-input,
+	.ant-input-affix-wrapper,
+	.ant-input-group-wrapper {
+		width: 100%;
+		max-width: 100%;
 	}
 }
 </style>

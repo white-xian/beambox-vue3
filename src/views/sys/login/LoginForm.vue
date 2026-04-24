@@ -1,73 +1,75 @@
 <template>
-	<LoginFormTitle v-show="getShow" class="enter-x" />
-	<Form class="p-4 enter-x" :model="formData" :rules="getFormRules" ref="formRef" v-show="getShow">
-		<FormItem name="userName" class="enter-x">
-			<Input size="large" v-model:value="formData.userName" placeholder="请输入员工账号" class="fix-auto-fill" />
-		</FormItem>
-		<FormItem name="password" class="enter-x">
-			<InputPassword size="large" visibilityToggle v-model:value="formData.password" placeholder="请输入密码" />
-		</FormItem>
-		<ARow v-if="captchaData.captchaOnOff">
-			<ACol :span="16">
-				<FormItem name="code">
-					<Input size="large" class="code-input" v-model:value="formData.code" placeholder="请输入验证码" />
-				</FormItem>
-			</ACol>
-			<ACol :span="8" :style="{ 'text-align': 'right' }">
+	<LoginFormTitle v-show="getShow" />
+	<el-form v-show="getShow" ref="formRef" class="login-form enter-x" :model="formData" :rules="getFormRules" label-position="top">
+		<el-form-item prop="userName" class="enter-x">
+			<div class="login-field-label">{{ TEXT.accountLabel }}</div>
+			<el-input v-model="formData.userName" size="large" :placeholder="TEXT.accountPlaceholder" clearable />
+		</el-form-item>
+
+		<el-form-item prop="password" class="enter-x">
+			<div class="login-field-label">{{ TEXT.passwordLabel }}</div>
+			<el-input v-model="formData.password" size="large" type="password" :placeholder="TEXT.passwordPlaceholder" show-password />
+		</el-form-item>
+
+		<el-form-item v-if="captchaData.captchaOnOff" prop="code" class="enter-x">
+			<div class="login-field-label">{{ TEXT.codeLabel }}</div>
+			<div class="login-captcha-row">
+				<el-input v-model="formData.code" size="large" :placeholder="TEXT.codePlaceholder" />
 				<div class="login-code-box" :class="{ 'is-loading': captchaLoading }" @click="handleCodeImage">
-					<Spin v-if="captchaLoading" size="small" />
-					<img v-else-if="captchaData.img" class="code-image" :src="captchaData.img" alt="验证码" />
+					<Icon v-if="captchaLoading" icon="line-md:loading-loop" />
+					<img v-else-if="captchaData.img" class="code-image" :src="captchaData.img" :alt="TEXT.codeLabel" />
 					<div v-else class="login-code-placeholder"></div>
 				</div>
-			</ACol>
-		</ARow>
+			</div>
+		</el-form-item>
 
-		<ARow class="enter-x">
-			<ACol :span="12">
-				<FormItem>
-					<!-- No logic, you need to deal with it yourself -->
-					<Checkbox v-model:checked="rememberMe" size="small"> 记住我 </Checkbox>
-				</FormItem>
-			</ACol>
-			<ACol :span="12">
-				<FormItem :style="{ 'text-align': 'right' }">
-					<Button type="link" size="small" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)"> 忘记密码? </Button>
-				</FormItem>
-			</ACol>
-		</ARow>
+		<div class="login-options enter-x">
+			<el-checkbox v-model="rememberMe">{{ TEXT.rememberMe }}</el-checkbox>
+			<button type="button" class="login-link-button" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)">
+				{{ TEXT.forgetPassword }}
+			</button>
+		</div>
 
-		<FormItem class="enter-x">
-			<Button type="primary" size="large" block @click="handleLogin" :loading="loading"> 登录 </Button>
-		</FormItem>
-	</Form>
+		<el-button class="login-submit enter-x" type="primary" :loading="loading" @click="handleLogin">
+			{{ TEXT.login }}
+		</el-button>
+	</el-form>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, unref } from 'vue'
-import { Button, Checkbox, Col, Form, Input, Row, Spin } from 'ant-design-vue'
-import LoginFormTitle from './LoginFormTitle.vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
 import { onKeyStroke } from '@vueuse/core'
-import { useMessage } from '@/hooks/web/useMessage'
+import Icon from '@/components/Icon/Icon.vue'
+import LoginFormTitle from './LoginFormTitle.vue'
 import { useUserStore } from '@/store/modules/user'
 import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin'
-import { useDesign } from '@/hooks/web/useDesign'
 import { ENTERPRISE_NAME_SESSION_CACHE_KEY, PASSWORD_SESSION_CACHE_KEY, REMEMBER_ME_SESSION_CACHE_KEY, USER_NAME_SESSION_CACHE_KEY } from '@/enums'
 
-const ACol = Col
-const ARow = Row
-const FormItem = Form.Item
-const InputPassword = Input.Password
-const { notification, createErrorModal } = useMessage()
-const { prefixCls } = useDesign('login')
-const userStore = useUserStore()
+const TEXT = {
+	accountLabel: '\u8d26\u53f7',
+	accountPlaceholder: '\u8bf7\u8f93\u5165\u5458\u5de5\u8d26\u53f7',
+	passwordLabel: '\u5bc6\u7801',
+	passwordPlaceholder: '\u8bf7\u8f93\u5165\u5bc6\u7801',
+	codeLabel: '\u9a8c\u8bc1\u7801',
+	codePlaceholder: '\u8bf7\u8f93\u5165\u9a8c\u8bc1\u7801',
+	rememberMe: '\u8bb0\u4f4f\u6211',
+	forgetPassword: '\u5fd8\u8bb0\u5bc6\u7801\uff1f',
+	login: '\u767b\u5f55',
+	loginSuccess: '\u767b\u5f55\u6210\u529f',
+	welcomeBack: '\u6b22\u8fce\u56de\u6765',
+	errorTip: '\u9519\u8bef\u63d0\u793a',
+	networkError: '\u7f51\u7edc\u5f02\u5e38\uff0c\u8bf7\u68c0\u67e5\u60a8\u7684\u7f51\u7edc\u8fde\u63a5\u662f\u5426\u6b63\u5e38',
+}
 
+const userStore = useUserStore()
 const { setLoginState, getLoginState } = useLoginState()
 const { getFormRules } = useFormRules()
 
 const formRef = ref()
 const loading = ref(false)
 const captchaLoading = ref(false)
-const rememberMe = ref(localStorage.getItem(REMEMBER_ME_SESSION_CACHE_KEY) === 'true' || false)
+const rememberMe = ref(localStorage.getItem(REMEMBER_ME_SESSION_CACHE_KEY) === 'true')
 const lastGetCodeAt = ref(0)
 
 const formData = reactive({
@@ -77,21 +79,20 @@ const formData = reactive({
 })
 
 const captchaData = reactive({
-	// 验证码开关
 	captchaOnOff: true,
 	img: '',
 	uuid: '',
 })
 
-const { validForm } = useFormValid(formRef)
+const { validForm } = useFormValid(formRef, formData)
+const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 
 onKeyStroke('Enter', handleLogin)
-
-const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 
 async function handleLogin() {
 	const data = await validForm()
 	if (!data) return
+
 	try {
 		loading.value = true
 		const userInfo = await userStore.login({
@@ -100,20 +101,20 @@ async function handleLogin() {
 			password: data.password,
 			code: data.code,
 			uuid: captchaData.uuid,
-			mode: 'none', //不要默认的错误提示
+			mode: 'none',
 		})
+
 		if (userInfo) {
-			notification.success({
-				message: '登录成功',
-				description: `${'欢迎回来'}: ${userInfo.user.nickName}`,
-				duration: 3,
+			ElNotification({
+				title: TEXT.loginSuccess,
+				message: `${TEXT.welcomeBack}\uff1a${userInfo.user.nickName}`,
+				type: 'success',
+				duration: 3000,
 			})
 		}
 	} catch (error) {
-		createErrorModal({
-			title: '错误提示',
-			content: error?.message || '网络异常，请检查您的网络连接是否正常!',
-			getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
+		ElMessageBox.alert(error?.message || TEXT.networkError, TEXT.errorTip, {
+			type: 'error',
 		})
 		await handleCodeImage()
 	} finally {
@@ -127,23 +128,25 @@ async function handleLogin() {
 			localStorage.removeItem(PASSWORD_SESSION_CACHE_KEY)
 			localStorage.removeItem(REMEMBER_ME_SESSION_CACHE_KEY)
 		}
+
 		formData.code = ''
 		loading.value = false
 	}
 }
 
-// 处理登录验证码
 async function handleCodeImage() {
 	const now = Date.now()
 	if (captchaLoading.value) return
 	if (now - lastGetCodeAt.value < 300) return
+
 	lastGetCodeAt.value = now
 	captchaLoading.value = true
 	captchaData.img = ''
+
 	try {
 		const data = await userStore.getCodeImage()
 		captchaData.captchaOnOff = data.captchaOnOff
-		captchaData.img = data.img ? 'data:image/png;base64,' + data.img : ''
+		captchaData.img = data.img ? `data:image/png;base64,${data.img}` : ''
 		captchaData.uuid = data.uuid
 	} catch {
 		captchaData.img = ''
@@ -154,16 +157,53 @@ async function handleCodeImage() {
 }
 
 onMounted(() => {
-	// 初始执行一次验证码获取
 	handleCodeImage()
 })
 </script>
 
 <style lang="less" scoped>
-.code-input {
-	display: inline-block;
-	vertical-align: middle;
-	min-width: 100% !important;
+.login-form {
+	width: 100%;
+}
+
+.login-field-label {
+	margin-bottom: 10px;
+	font-size: 14px;
+	line-height: 20px;
+	color: #4a4a4a;
+}
+
+.login-captcha-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.login-options {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 2px 0 28px;
+}
+
+.login-link-button {
+	padding: 0;
+	border: none;
+	background: transparent;
+	font-size: 13px;
+	color: #6f5fff;
+	cursor: pointer;
+}
+
+.login-submit {
+	width: 100%;
+	height: 44px;
+	border: none;
+	border-radius: 8px;
+	background: linear-gradient(90deg, #5e59f3 0%, #6f5fff 100%);
+	box-shadow: 0 16px 28px rgba(100, 92, 255, 0.26);
+	font-size: 16px;
+	font-weight: 500;
 }
 
 .code-image {
@@ -175,10 +215,11 @@ onMounted(() => {
 
 .login-code-box {
 	position: relative;
-	display: inline-flex;
+	display: flex;
+	flex: 0 0 145px;
 	align-items: center;
 	justify-content: center;
-	width: 115px;
+	width: 145px;
 	height: 40px;
 	overflow: hidden;
 	border: 1px solid #d5d9e5;
@@ -195,5 +236,35 @@ onMounted(() => {
 	width: 100%;
 	height: 100%;
 	background: linear-gradient(135deg, #eef1ff, #f8f9ff);
+}
+
+:deep(.el-form-item) {
+	margin-bottom: 24px;
+}
+
+:deep(.el-form-item__content) {
+	display: block;
+}
+
+:deep(.el-input__wrapper) {
+	min-height: 40px;
+	padding: 0 14px;
+	border-radius: 6px;
+	box-shadow: 0 0 0 1px #d8dceb inset;
+}
+
+:deep(.el-input__wrapper:hover),
+:deep(.el-input__wrapper.is-focus) {
+	box-shadow: 0 0 0 1px #7065ff inset;
+}
+
+:deep(.el-checkbox__label) {
+	font-size: 12px;
+	color: #6f7482;
+}
+
+:deep(.el-button.login-submit:hover),
+:deep(.el-button.login-submit:focus) {
+	background: linear-gradient(90deg, #5a55e8 0%, #6658fa 100%);
 }
 </style>
