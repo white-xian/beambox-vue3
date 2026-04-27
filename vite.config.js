@@ -27,9 +27,11 @@ export default defineConfig(async (configEnv) => {
 		css: {
 			preprocessorOptions: {
 				sass: {
+					api: 'modern-compiler',
 					style: 'expanded',
 				},
 				scss: {
+					api: 'modern-compiler',
 					style: 'expanded',
 				},
 			},
