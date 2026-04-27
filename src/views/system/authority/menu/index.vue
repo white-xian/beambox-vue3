@@ -40,7 +40,7 @@
 	</div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { reactive } from 'vue'
 import { delMenuApi, listMenuApi } from '@/api/system/authority/menu.api'
 import { useModal } from '@/components/Modal'
@@ -55,10 +55,7 @@ import { IconEnum } from '@/enums'
 
 const { createMessage, createConfirm } = useMessage()
 const [registerModal, { openModal }] = useModal()
-const state = reactive<{
-	ids: string[]
-	idNames: string
-}>({
+const state = reactive({
 	ids: [],
 	idNames: '',
 })
@@ -90,7 +87,7 @@ const [registerTable, { reload, expandAll, collapseAll }] = useTable({
 	},
 	rowSelection: {
 		onChange: (selectedRowKeys, selectRows) => {
-			state.ids = selectedRowKeys as string[]
+			state.ids = selectedRowKeys
 			state.idNames = selectRows
 				.map((item) => {
 					return item.title
@@ -101,7 +98,7 @@ const [registerTable, { reload, expandAll, collapseAll }] = useTable({
 })
 
 /** 查看按钮 */
-function handleView(record: Recordable) {
+function handleView(record) {
 	useUserStore().getRoutePath(MenuDetailGo, record.id)
 }
 
@@ -113,7 +110,7 @@ function handleCreate() {
 }
 
 /** 修改按钮 */
-function handleEdit(record: Recordable) {
+function handleEdit(record) {
 	openModal(true, {
 		record,
 		isUpdate: true,
@@ -121,7 +118,7 @@ function handleEdit(record: Recordable) {
 }
 
 /** 删除按钮 */
-function handleDelete(record: Recordable) {
+function handleDelete(record) {
 	const delIds = record.id || state.ids
 	const delNames = record.title || state.idNames
 	if (!record.id && state.ids.length === 0) {
@@ -141,7 +138,7 @@ function handleDelete(record: Recordable) {
 }
 
 /** 菜单操作权限检验 */
-function handleMenu(record: Recordable): boolean {
+function handleMenu(record) {
 	return record.id !== COMMON_MENU && useUserStore().useCommon(record.isCommon)
 }
 

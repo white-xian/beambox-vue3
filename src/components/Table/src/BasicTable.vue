@@ -22,9 +22,9 @@
 	</div>
 </template>
 
-<script lang="ts" setup>
-import type { BasicTableProps, ColumnChangeParam, SizeType, TableActionType } from './types/table'
-import { InnerHandlers, InnerMethods } from './types/table'
+<script setup>
+// import type { BasicTableProps, ColumnChangeParam, SizeType, TableActionType } from './types/table'
+// import { InnerHandlers, InnerMethods } from './types/table'
 import { computed, inject, ref, toRaw, unref, useAttrs, useSlots, watch } from 'vue'
 import { Table } from 'ant-design-vue'
 import { BasicForm, useForm } from '@/components/Form'
@@ -64,14 +64,14 @@ const tableData = ref([])
 
 const wrapRef = ref(null)
 const formRef = ref(null)
-const innerPropsRef = ref<Partial<BasicTableProps>>()
+const innerPropsRef = ref()
 
 const { height } = useElementSize(wrapRef)
 const { prefixCls } = useDesign('basic-table')
 const [registerForm, formActions] = useForm()
 
 const getProps = computed(() => {
-	return { ...props, ...unref(innerPropsRef) } as BasicTableProps
+	return { ...props, ...unref(innerPropsRef) }
 })
 
 const isFixedHeightPage = inject(PageWrapperFixedHeightKey, false)
@@ -110,7 +110,7 @@ const {
 	emit,
 )
 
-function handleTableChange(pagination: any, filters: any, sorter: any, extra: any) {
+function handleTableChange(pagination, filters, sorter, extra) {
 	onTableChange(pagination, filters, sorter)
 	emit('change', pagination, filters, sorter)
 	// 解决通过useTable注册onChange时不起作用的问题
@@ -138,15 +138,15 @@ const { getRowClassName } = useTableStyle(getProps, prefixCls)
 
 const { getExpandOption, expandAll, expandRows, collapseRows, collapseAll, handleTableExpand } = useTableExpand(getProps, tableData, emit)
 
-const handlers: InnerHandlers = {
-	onColumnsChange: (data: ColumnChangeParam[]) => {
+const handlers = {
+	onColumnsChange: (data) => {
 		emit('columns-change', data)
 		// support useTable
 		unref(getProps).onColumnsChange?.(data)
 	},
 }
 
-const methods: InnerMethods = {
+const methods = {
 	clearSelectedRowKeys,
 	getSelectRowKeys,
 }
@@ -159,7 +159,7 @@ const { getFormProps, replaceFormSlotKey, getFormSlotKeys, handleSearchInfoChang
 
 const getBindValues = computed(() => {
 	const dataSource = unref(getDataSourceRef)
-	let propsData: any = {
+	let propsData = {
 		...attrs,
 		customRow,
 		...unref(getProps),
@@ -207,11 +207,11 @@ watch(height, () => {
 	unref(isFixedHeightPage) && props.canResize && debounceRedoHeight()
 })
 
-function setProps(props: Partial<BasicTableProps>) {
+function setProps(props) {
 	innerPropsRef.value = { ...unref(innerPropsRef), ...props }
 }
 
-const tableAction: TableActionType = {
+const tableAction = {
 	reload,
 	getSelectRows,
 	setSelectedRows,
@@ -247,7 +247,7 @@ const tableAction: TableActionType = {
 	collapseRows,
 	scrollTo,
 	getSize: () => {
-		return unref(getBindValues).size as SizeType
+		return unref(getBindValues).size
 	},
 	setCacheColumns,
 }
