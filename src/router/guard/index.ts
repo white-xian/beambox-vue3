@@ -4,6 +4,7 @@ import { useUserStoreWithOut } from '@/store/modules/user'
 import { useTransitionSetting } from '@/hooks/setting/useTransitionSetting'
 import { AxiosCanceler } from '@/utils/http/axios/axiosCancel'
 import { Modal, notification } from 'ant-design-vue'
+import { ElMessage } from 'element-plus'
 import { warn } from '@/utils/log/LogUtil'
 import { unref } from 'vue'
 import { prefixCls } from '@/settings/designSetting'
@@ -129,6 +130,7 @@ export function createMessageGuard(router: Router) {
 			if (closeMessageOnSwitch) {
 				Modal.destroyAll()
 				notification.destroy()
+				ElMessage.closeAll()
 			}
 		} catch (error) {
 			warn('message guard error:' + error)

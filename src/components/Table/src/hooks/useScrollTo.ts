@@ -29,7 +29,8 @@ export function useTableScrollTo(
     if (!tableEl) return;
 
     if (!bodyEl) {
-      bodyEl = tableEl.querySelector('.ant-table-body');
+      // Element Plus 的滚动发生在 el-scrollbar__wrap，回退 body-wrapper 以兼容不同渲染结构。
+      bodyEl = tableEl.querySelector('.el-table__body-wrapper .el-scrollbar__wrap, .el-table__body-wrapper');
       if (!bodyEl) return;
     }
 

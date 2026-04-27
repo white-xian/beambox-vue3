@@ -74,7 +74,8 @@ const [registerTable, { reload, expandAll, collapseAll }] = useTable({
 	},
 	isTreeTable: true,
 	pagination: false,
-	canResize: false,
+	// 树表展开后保持表格内部滚动，避免把页面撑出浏览器 Y 轴滚动条。
+	canResize: true,
 	showTableSetting: true,
 	tableSetting: {
 		fullScreen: true,
