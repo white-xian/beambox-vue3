@@ -15,9 +15,13 @@
 			<div class="login-field-label">{{ TEXT.codeLabel }}</div>
 			<div class="login-captcha-row">
 				<el-input v-model="formData.code" size="large" :placeholder="TEXT.codePlaceholder" />
-				<div class="login-code-box" :class="{ 'is-loading': captchaLoading }" @click="handleCodeImage">
+				<div class="login-code-box" :class="{ 'is-loading': captchaLoading, 'is-error': captchaLoadFailed }" @click="handleCodeImage({ isRefresh: true })">
 					<Icon v-if="captchaLoading" icon="line-md:loading-loop" />
 					<img v-else-if="captchaData.img" class="code-image" :src="captchaData.img" :alt="TEXT.codeLabel" />
+					<div v-else-if="captchaLoadFailed" class="code-error" :title="TEXT.codeLoadError">
+						<span>{{ TEXT.codeLoadErrorShort }}</span>
+						<small>{{ TEXT.codeRetryTip }}</small>
+					</div>
 					<div v-else class="login-code-placeholder"></div>
 				</div>
 			</div>
@@ -38,9 +42,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, unref } from 'vue'
-import { ElMessageBox, ElNotification } from 'element-plus'
+import { ElNotification } from 'element-plus'
 import { onKeyStroke } from '@vueuse/core'
 import Icon from '@/components/Icon/Icon.vue'
+import { useMessage } from '@/hooks/web/useMessage'
 import LoginFormTitle from './LoginFormTitle.vue'
 import { useUserStore } from '@/store/modules/user'
 import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin'
@@ -60,15 +65,21 @@ const TEXT = {
 	welcomeBack: '\u6b22\u8fce\u56de\u6765',
 	errorTip: '\u9519\u8bef\u63d0\u793a',
 	networkError: '\u7f51\u7edc\u5f02\u5e38\uff0c\u8bf7\u68c0\u67e5\u60a8\u7684\u7f51\u7edc\u8fde\u63a5\u662f\u5426\u6b63\u5e38',
+	codeLoadErrorShort: '\u9a8c\u8bc1\u7801\u52a0\u8f7d\u5931\u8d25',
+	codeRetryTip: '\u70b9\u51fb\u91cd\u8bd5',
+	codeLoadError: '\u9a8c\u8bc1\u7801\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u70b9\u51fb\u9a8c\u8bc1\u7801\u533a\u57df\u91cd\u8bd5',
+	codeRefreshError: '\u9a8c\u8bc1\u7801\u5237\u65b0\u5931\u8d25\uff0c\u8bf7\u70b9\u51fb\u9a8c\u8bc1\u7801\u533a\u57df\u91cd\u8bd5',
 }
 
 const userStore = useUserStore()
+const { createMessage } = useMessage()
 const { setLoginState, getLoginState } = useLoginState()
 const { getFormRules } = useFormRules()
 
 const formRef = ref()
 const loading = ref(false)
 const captchaLoading = ref(false)
+const captchaLoadFailed = ref(false)
 const rememberMe = ref(localStorage.getItem(REMEMBER_ME_SESSION_CACHE_KEY) === 'true')
 const lastGetCodeAt = ref(0)
 
@@ -113,10 +124,11 @@ async function handleLogin() {
 			})
 		}
 	} catch (error) {
-		ElMessageBox.alert(error?.message || TEXT.networkError, TEXT.errorTip, {
-			type: 'error',
+		createMessage.error({
+			content: resolveDisplayErrorMessage(error, TEXT.networkError),
+			key: 'login_error_message',
 		})
-		await handleCodeImage()
+		await handleCodeImage({ showError: false })
 	} finally {
 		if (rememberMe.value) {
 			localStorage.setItem(USER_NAME_SESSION_CACHE_KEY, data.userName)
@@ -134,13 +146,14 @@ async function handleLogin() {
 	}
 }
 
-async function handleCodeImage() {
+async function handleCodeImage({ showError = true, isRefresh = false } = {}) {
 	const now = Date.now()
 	if (captchaLoading.value) return
 	if (now - lastGetCodeAt.value < 300) return
 
 	lastGetCodeAt.value = now
 	captchaLoading.value = true
+	captchaLoadFailed.value = false
 	captchaData.img = ''
 
 	try {
@@ -148,12 +161,34 @@ async function handleCodeImage() {
 		captchaData.captchaOnOff = data.captchaOnOff
 		captchaData.img = data.img ? `data:image/png;base64,${data.img}` : ''
 		captchaData.uuid = data.uuid
-	} catch {
+		captchaLoadFailed.value = false
+	} catch (error) {
 		captchaData.img = ''
 		captchaData.uuid = ''
+		captchaLoadFailed.value = true
+		if (showError) {
+			createMessage.error(resolveCaptchaErrorMessage(error, isRefresh ? TEXT.codeRefreshError : TEXT.codeLoadError))
+		}
 	} finally {
 		captchaLoading.value = false
 	}
+}
+
+function resolveCaptchaErrorMessage(error, fallbackMessage) {
+	return resolveDisplayErrorMessage(error, fallbackMessage)
+}
+
+function isAsciiOnlyMessage(message) {
+	return Array.from(message).every((char) => char.charCodeAt(0) <= 127)
+}
+
+function resolveDisplayErrorMessage(error, fallbackMessage) {
+	const responseMessage = error?.response?.data?.msg || error?.response?.data?.message || error?.response?.data?.error?.message
+	if (typeof responseMessage === 'string' && responseMessage.trim() && !isAsciiOnlyMessage(responseMessage.trim())) {
+		return responseMessage.trim()
+	}
+
+	return fallbackMessage
 }
 
 onMounted(() => {
@@ -168,9 +203,9 @@ onMounted(() => {
 
 .login-field-label {
 	margin-bottom: 10px;
+	color: #4a4a4a;
 	font-size: 14px;
 	line-height: 20px;
-	color: #4a4a4a;
 }
 
 .login-captcha-row {
@@ -190,8 +225,8 @@ onMounted(() => {
 	padding: 0;
 	border: none;
 	background: transparent;
-	font-size: 13px;
 	color: #6f5fff;
+	font-size: 13px;
 	cursor: pointer;
 }
 
@@ -201,7 +236,7 @@ onMounted(() => {
 	border: none;
 	border-radius: 8px;
 	background: linear-gradient(90deg, #5e59f3 0%, #6f5fff 100%);
-	box-shadow: 0 16px 28px rgba(100, 92, 255, 0.26);
+	box-shadow: 0 16px 28px rgb(100 92 255 / 26%);
 	font-size: 16px;
 	font-weight: 500;
 }
@@ -210,26 +245,78 @@ onMounted(() => {
 	display: block;
 	width: 100%;
 	height: 100%;
-	object-fit: cover;
+	object-fit: contain;
 }
 
 .login-code-box {
-	position: relative;
 	display: flex;
+	position: relative;
 	flex: 0 0 145px;
 	align-items: center;
 	justify-content: center;
 	width: 145px;
 	height: 40px;
 	overflow: hidden;
+	transition:
+		border-color 0.2s ease,
+		background-color 0.2s ease,
+		box-shadow 0.2s ease;
 	border: 1px solid #d5d9e5;
 	border-radius: 4px;
 	background: #fff;
 	cursor: pointer;
+
+	&:hover {
+		border-color: #7065ff;
+		box-shadow: 0 6px 18px rgb(112 101 255 / 12%);
+	}
 }
 
 .login-code-box.is-loading {
+	color: #7065ff;
 	cursor: not-allowed;
+
+	&:hover {
+		border-color: #d5d9e5;
+		box-shadow: none;
+	}
+}
+
+.login-code-box.is-error {
+	border-color: #f0b6b6;
+	background: #fff7f7;
+
+	&:hover {
+		border-color: #e46a6a;
+		background: #fff1f1;
+		box-shadow: 0 0 0 2px rgb(228 106 106 / 10%);
+	}
+}
+
+.code-error {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	gap: 2px;
+	color: #d85c4a;
+	line-height: 1.2;
+	text-align: center;
+	user-select: none;
+
+	span {
+		font-size: 12px;
+		font-weight: 500;
+		line-height: 16px;
+	}
+
+	small {
+		color: #a56a5f;
+		font-size: 11px;
+		line-height: 14px;
+	}
 }
 
 .login-code-placeholder {
@@ -259,8 +346,8 @@ onMounted(() => {
 }
 
 :deep(.el-checkbox__label) {
-	font-size: 12px;
 	color: #6f7482;
+	font-size: 12px;
 }
 
 :deep(.el-button.login-submit:hover),
