@@ -336,12 +336,18 @@
     }
 
     &-dark&-vertical &-submenu &-item {
+      margin: 5px 0;
+
+      &:last-child {
+        margin-bottom: 5px;
+      }
+
       &-active,
       &-active:hover {
         border-right: none;
         background-color: @sider-dark-lighten-bg-color !important;
         color: #fff;
-        margin: 5px 0;
+        margin-bottom: 5px;
       }
     }
 
