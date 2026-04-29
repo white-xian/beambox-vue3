@@ -79,6 +79,22 @@ export function useTableScroll(
     return Number.isFinite(parsedValue) ? parsedValue : 0;
   }
 
+  function syncNativeScrollbarGutter(bodyEl: HTMLElement, tableEl: Element) {
+    const gutterWidth = Math.max(bodyEl.offsetWidth - bodyEl.clientWidth, 0);
+    const currentValue = getComputedStyle(tableEl).getPropertyValue('--nn-scrollbar-gutter');
+    const currentWidth = Number.parseFloat(currentValue || '0');
+    const sizeValue = getComputedStyle(tableEl).getPropertyValue('--nn-scrollbar-size');
+    const fallbackWidth = Number.parseFloat(sizeValue || '0');
+    const effectiveWidth =
+      gutterWidth > 0 || !Number.isFinite(fallbackWidth) || fallbackWidth <= 0
+        ? gutterWidth
+        : fallbackWidth;
+
+    if (Number.isFinite(currentWidth) && Math.abs(currentWidth - effectiveWidth) < 0.5) return;
+
+    (tableEl as HTMLElement).style.setProperty('--nn-scrollbar-gutter', `${effectiveWidth}px`);
+  }
+
   function getTableWrapperBottomPadding(tableEl: Element) {
     const tableWrapperEl = tableEl.parentElement as HTMLElement | null;
     if (!tableWrapperEl) return 0;
@@ -258,7 +274,6 @@ export function useTableScroll(
 
   async function calcTableHeight() {
     const { resizeHeightOffset, maxHeight } = unref(propsRef);
-    const tableData = unref(getDataSourceRef);
 
     const table = unref(tableElRef);
     if (!table) return;
@@ -273,10 +288,11 @@ export function useTableScroll(
     }
 
     handleScrollBar(bodyEl, tableEl);
+    syncNativeScrollbarGutter(bodyEl, tableEl);
 
     bodyEl!.style.height = 'unset';
 
-    if (!unref(getCanResize) || !unref(tableData) || tableData.length === 0) return;
+    if (!unref(getCanResize)) return;
 
     await nextTick();
     // Add a delay to get the correct bottomIncludeBody paginationHeight footerHeight headerHeight
@@ -315,7 +331,7 @@ export function useTableScroll(
     setHeight(height);
 
     bodyEl!.style.height = `${height}px`;
-    // 手动改 body 高度后通知 Element 重新计算列宽、fixed 列和滚动条位置。
+    syncNativeScrollbarGutter(bodyEl, tableEl);
     table?.doLayout?.();
   }
 

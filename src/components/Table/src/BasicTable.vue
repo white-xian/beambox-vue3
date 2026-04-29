@@ -23,6 +23,7 @@
 				:default-expand-all="getBindValues.defaultExpandAllRows"
 				:expand-row-keys="getElementExpandedRowKeys"
 				:expand-on-click-row="!!getBindValues.expandRowByClick"
+				:native-scrollbar="true"
 				style="width: 100%"
 				@selection-change="handleElementSelectionChange"
 				@row-click="handleElementRowClick"
@@ -641,14 +642,14 @@ defineExpose({ tableElRef, ...tableAction })
 @prefix-cls: ~'@{namespace}-basic-table';
 
 .@{prefix-cls} {
-	// 这些变量参考 nn-family-backend 的 Element 全局样式，便于表格/fixed/滚动条统一换肤。
+	//  Element 全局样式，便于表格/fixed/滚动条统一换肤。
 	--nn-bg-elevated: @component-background;
 	--nn-surface-muted: #f8f8f9;
 	--nn-table-header-bg: #f8f8f9;
 	--nn-table-row-hover-bg: #f5f7fa;
 	--nn-border: @border-color-base;
-	--nn-scrollbar-size: 16px;
-	--nn-scrollbar-gutter: 16px;
+	--nn-scrollbar-size: 14px;
+	--nn-scrollbar-gutter: 14px;
 	--nn-scrollbar-thumb: #c1c1c1;
 	--nn-scrollbar-thumb-hover: #a8a8a8;
 	--nn-scrollbar-track: #f1f1f1;
@@ -666,11 +667,14 @@ defineExpose({ tableElRef, ...tableAction })
 		padding: 16px;
 
 		.ant-form {
-			width: 100%;
-			margin-bottom: 16px;
-			padding: 12px 10px 6px;
-			border-radius: 2px;
-			background-color: @component-background;
+      padding: 16px 18px;
+      margin: 10px 0;
+      background: var(--nn-bg-elevated);
+      border: 1px solid var(--nn-border);
+      border-radius: 10px;
+      -webkit-box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+      position: relative;
 		}
 	}
 
@@ -706,8 +710,8 @@ defineExpose({ tableElRef, ...tableAction })
 		--el-table-row-hover-bg-color: var(--nn-table-row-hover-bg);
 		--el-table-border-color: var(--nn-border);
 		--el-table-border: 1px solid var(--nn-border);
-		--el-table-fixed-left-column: inset 10px 0 8px -8px rgb(0 0 0 / 18%);
-		--el-table-fixed-right-column: inset -10px 0 8px -8px rgb(0 0 0 / 18%);
+		--el-table-fixed-left-column: inset 1px 0 0 0 var(--nn-border);
+		--el-table-fixed-right-column: inset -1px 0 0 0 var(--nn-border);
 		color: @text-color-base;
 		background-color: var(--nn-bg-elevated);
 	}
@@ -715,7 +719,7 @@ defineExpose({ tableElRef, ...tableAction })
 	.el-table__header-wrapper th.el-table__cell,
 	.el-table__fixed-header-wrapper th.el-table__cell,
 	.el-table--scrollable-y th.gutter {
-		// 表头高度固定为 55px，和 nn-family-backend 的 $headerCellStyle55 保持一致。
+		// 表头高度固定为 55px
 		height: var(--nn-table-header-height) !important;
 		padding-top: 0 !important;
 		padding-bottom: 0 !important;
@@ -739,17 +743,22 @@ defineExpose({ tableElRef, ...tableAction })
 
 	.el-table__body-wrapper,
 	.el-table__body-wrapper .el-scrollbar__wrap {
-		// 只让表格 body 内部滚动，内容超出时在表格内部出现 X/Y 轴滚动条。
+		// Use native scrollbars so the X/Y axes reserve space instead of covering cells.
 		scrollbar-width: auto;
 		scrollbar-color: var(--nn-scrollbar-thumb) var(--nn-scrollbar-track);
 	}
 
-	// Windows/Chrome 下使用原生滚动条样式，颜色与 nn-family-backend 保持一致。
+	.el-table__body-wrapper .el-scrollbar__wrap {
+		scrollbar-gutter: stable;
+	}
+
+	.el-table__body-wrapper::-webkit-scrollbar,
 	.el-table__body-wrapper .el-scrollbar__wrap::-webkit-scrollbar {
 		width: var(--nn-scrollbar-size);
 		height: var(--nn-scrollbar-size);
 	}
 
+	.el-table__body-wrapper::-webkit-scrollbar-thumb,
 	.el-table__body-wrapper .el-scrollbar__wrap::-webkit-scrollbar-thumb {
 		min-width: 40px;
 		min-height: 40px;
@@ -760,19 +769,25 @@ defineExpose({ tableElRef, ...tableAction })
 		cursor: pointer;
 	}
 
+	.el-table__body-wrapper::-webkit-scrollbar-thumb:hover,
 	.el-table__body-wrapper .el-scrollbar__wrap::-webkit-scrollbar-thumb:hover {
 		background: var(--nn-scrollbar-thumb-hover);
 		background-clip: content-box;
 		cursor: pointer;
 	}
 
+	.el-table__body-wrapper::-webkit-scrollbar-track,
 	.el-table__body-wrapper .el-scrollbar__wrap::-webkit-scrollbar-track {
 		border-radius: 999px;
 		background: var(--nn-scrollbar-track);
 	}
 
+	.el-table__body-wrapper::-webkit-scrollbar-corner,
+	.el-table__body-wrapper .el-scrollbar__wrap::-webkit-scrollbar-corner {
+		background: var(--nn-scrollbar-track);
+	}
+
 	.el-table .el-scrollbar__bar {
-		// Element Plus 还有一层 overlay 滚动条；隐藏它，避免和原生滚动条叠出灰色虚影。
 		display: none !important;
 	}
 
@@ -789,17 +804,19 @@ defineExpose({ tableElRef, ...tableAction })
 		background-color: var(--nn-table-header-bg) !important;
 	}
 
-	.el-table__fixed-right-patch,
-	.el-table .el-table__cell.gutter {
-		// fixed 列与滚动条 gutter 使用同色背景，避免右侧补丁区域出现白块。
+	.el-table--scrollable-y .el-table__header-wrapper {
 		background-color: var(--nn-table-header-bg) !important;
-		border-color: var(--nn-border) !important;
 	}
 
-	.el-table--scrollable-y .el-table__fixed-right-patch {
-		width: var(--nn-scrollbar-gutter) !important;
-		height: var(--nn-table-header-height) !important;
-	}
+  // 当表格开启纵向滚动时，手动补偿表头右侧空白，使表头与表体对齐
+  .el-table--scrollable-y {
+    .el-table__header-wrapper {
+      padding-right: var(--nn-scrollbar-gutter, 14px) !important;
+      box-sizing: border-box;
+      background-color: #f8f8f9 !important;
+      background-clip: border-box !important;
+    }
+  }
 
 	&__pagination {
 		// 分页改用 Element Plus，但外观仍贴近原表格底部分页区域。
