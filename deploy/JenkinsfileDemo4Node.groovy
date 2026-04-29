@@ -7,7 +7,7 @@ pipeline {
         DEPLOYMENT_EVN_NAME = "生产环境" // 部署环境名称
         DEPLOYMENT_EVN = "prod" // 部署环境对应应用环境
         INSTALL_COMMAND = "pnpm install"
-        BUILD_COMMAND = "pnpm run build:prod" // 构建命令
+        BUILD_COMMAND = "pnpm run build:test" // 构建命令
         ROBOT_ID = "CICD" // 机器人ID
         /*git配置*/
         GIT_CREDENTIALSID = "gitlab-token" // 登录git凭证id，请在系统管理处配置
@@ -117,6 +117,5 @@ pipeline {
 //                         "> 构建日志：[点击查看详情](${BUILD_URL}console)"
 //                 ]
 //             )
-        }
     }
 }
