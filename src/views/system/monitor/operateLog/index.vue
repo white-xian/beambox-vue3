@@ -77,6 +77,9 @@
     rowKey: 'id',
     bordered: true,
     showIndexColumn: true,
+    indexColumnProps: {
+      fixed: 'left',
+    },
     columns,
     formConfig: {
       labelWidth: 120,
@@ -94,6 +97,7 @@
       slots: { customRender: 'action' },
     },
     rowSelection: {
+      fixed: true,
       onChange: (selectedRowKeys, selectRows) => {
         state.ids = selectedRowKeys as string[];
         state.idNames = selectRows

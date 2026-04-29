@@ -6,56 +6,46 @@
     overlayClassName="multiple-tabs__dropdown"
     @menu-event="handleMenuEvent"
   >
-    <div :class="`${prefixCls}__info`" @contextmenu="handleContext" v-if="getIsTabs">
+    <div v-if="getIsTabs" :class="`${prefixCls}__info`" @contextmenu="handleContext">
       <span class="ml-1">{{ getTitle }}</span>
     </div>
-    <span :class="`${prefixCls}__extra-quick`" v-else @click="handleContext">
+    <span v-else :class="`${prefixCls}__extra-quick`" @click="handleContext">
       <Icon icon="ion:chevron-down" />
     </span>
   </Dropdown>
 </template>
 
-<script lang="ts" setup>
-  import type { PropType } from 'vue';
-  import { computed, unref } from 'vue';
-  import type { RouteLocationNormalized } from 'vue-router';
-  import { Dropdown } from '@/components/Dropdown';
-  import Icon from '@/components/Icon/Icon.vue';
+<script setup>
+import { computed, unref } from 'vue'
+import { Dropdown } from '@/components/Dropdown'
+import Icon from '@/components/Icon/Icon.vue'
+import { useDesign } from '@/hooks/web/useDesign'
+import { useTabDropdown } from '../useTabDropdown'
 
-  import { TabContentProps } from '../types';
+defineOptions({ name: 'TabContent' })
 
-  import { useDesign } from '@/hooks/web/useDesign';
-  import { useTabDropdown } from '../useTabDropdown';
+const props = defineProps({
+  tabItem: {
+    type: Object,
+    default: null,
+  },
+  isExtra: Boolean,
+})
 
-  defineOptions({ name: 'TabContent' });
+const { prefixCls } = useDesign('multiple-tabs-content')
 
-  const props = defineProps({
-    tabItem: {
-      type: Object as PropType<RouteLocationNormalized>,
-      default: null,
-    },
-    isExtra: Boolean,
-  });
+const getTitle = computed(() => {
+  const { tabItem: { meta } = {} } = props
+  return meta?.title
+})
 
-  const { prefixCls } = useDesign('multiple-tabs-content');
+const getIsTabs = computed(() => !props.isExtra)
+const getTrigger = computed(() => (unref(getIsTabs) ? ['contextmenu'] : ['click']))
+const { getDropMenuList, handleMenuEvent, handleContextMenu } = useTabDropdown(props, getIsTabs)
 
-  const getTitle = computed(() => {
-    const { tabItem: { meta } = {} } = props;
-    return meta?.title as string;
-  });
-
-  const getIsTabs = computed(() => !props.isExtra);
-
-  const getTrigger = computed((): ('contextmenu' | 'click' | 'hover')[] =>
-    unref(getIsTabs) ? ['contextmenu'] : ['click'],
-  );
-
-  const { getDropMenuList, handleMenuEvent, handleContextMenu } = useTabDropdown(
-    props as TabContentProps,
-    getIsTabs,
-  );
-
-  function handleContext(e) {
-    props.tabItem && handleContextMenu(props.tabItem)(e);
+function handleContext(event) {
+  if (props.tabItem) {
+    handleContextMenu(props.tabItem)(event)
   }
+}
 </script>

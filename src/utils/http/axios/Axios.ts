@@ -238,7 +238,7 @@ export class VAxios {
         .then((res: AxiosResponse<Result>) => {
           resolve(res as unknown as Promise<T>);
           // download file
-          if (typeof res != undefined) {
+          if (typeof res !== 'undefined') {
             downloadByData(res?.data as unknown as BlobPart, title);
           }
         })
@@ -287,7 +287,7 @@ export class VAxios {
         .then((res: AxiosResponse<Result>) => {
           resolve(res as unknown as Promise<T>);
           // download file
-          if (typeof res != undefined) {
+          if (typeof res !== 'undefined') {
             downloadByData(res?.data as unknown as BlobPart, title);
           }
         })
@@ -334,7 +334,7 @@ export class VAxios {
               const ret = transformResponseHook(res, opt);
               resolve(ret);
             } catch (err) {
-              reject(err || new Error('request error!'));
+              reject(err || new Error('请求失败，请稍后重试！'));
             }
             return;
           }

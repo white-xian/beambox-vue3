@@ -1,9 +1,10 @@
-<script lang="tsx">
-  import type { CSSProperties, PropType } from 'vue';
+<script lang="jsx">
   import { computed, defineComponent, toRef, unref } from 'vue';
   import { BasicMenu } from '@/components/Menu';
   import { SimpleMenu } from '@/components/SimpleMenu';
   import { AppLogo } from '@/components/Application';
+  import expandedLogoImg from '@/assets/images/logo.png';
+  import collapsedLogoImg from '@/assets/images/favicon.png';
 
   import { MenuModeEnum, MenuSplitTyeEnum } from '@/enums';
 
@@ -25,14 +26,14 @@
       theme: propTypes.oneOf(['light', 'dark']),
 
       splitType: {
-        type: Number as PropType<MenuSplitTyeEnum>,
+        type: Number,
         default: MenuSplitTyeEnum.NONE,
       },
 
       isHorizontal: propTypes.bool,
       // menu Mode
       menuMode: {
-        type: [String] as PropType<MenuModeEnum | null>,
+        type: [String],
         default: '',
       },
     },
@@ -75,9 +76,9 @@
         );
       });
 
-      const getWrapperStyle = computed((): CSSProperties => {
+      const getWrapperStyle = computed(() => {
         return {
-          height: `calc(100% - ${unref(getIsShowLogo) ? '48px' : '0px'})`,
+          height: `calc(100% - ${unref(getIsShowLogo) ? '60px' : '0px'})`,
         };
       });
 
@@ -89,6 +90,22 @@
             [`${prefixCls}--mobile`]: unref(getIsMobile),
           },
         ];
+      });
+
+      const getLogoImgSrc = computed(() =>
+        unref(getCollapsed) ? collapsedLogoImg : expandedLogoImg,
+      );
+
+      const getLogoImgStyle = computed(() => {
+        return unref(getCollapsed)
+          ? {
+              width: '24px',
+              height: '24px',
+            }
+          : {
+              width: '134px',
+              height: 'auto',
+            };
       });
 
       const getCommonProps = computed(() => {
@@ -110,7 +127,7 @@
        * @param menu
        */
 
-      function handleMenuClick(path: string) {
+      function handleMenuClick(path) {
         go(path);
       }
 
@@ -118,7 +135,7 @@
        * before click menu
        * @param menu
        */
-      async function beforeMenuClickFn(path: string) {
+      async function beforeMenuClickFn(path) {
         if (!isHttpUrl(path)) {
           return true;
         }
@@ -131,9 +148,11 @@
 
         return (
           <AppLogo
-            showTitle={!unref(getCollapsed)}
+            showTitle={false}
             class={unref(getLogoClass)}
             theme={unref(getComputedMenuTheme)}
+            imgSrc={unref(getLogoImgSrc)}
+            imgStyle={unref(getLogoImgStyle)}
           />
         );
       }
@@ -146,11 +165,11 @@
           <SimpleMenu {...menuProps} isSplitMenu={unref(getSplit)} items={menus} />
         ) : (
           <BasicMenu
-            {...(menuProps as any)}
+            {...menuProps}
             isHorizontal={props.isHorizontal}
             type={unref(getMenuType)}
             showLogo={unref(getIsShowLogo)}
-            mode={unref(getComputedMenuMode as any)}
+            mode={unref(getComputedMenuMode)}
             items={menus}
           />
         );
@@ -177,12 +196,18 @@
 
   .@{prefix-cls} {
     &-logo {
-      height: @header-height;
-      padding: 10px 4px 10px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60px;
+      padding: 0;
+      background-color: @sider-dark-bg-color;
+      border-bottom: 1px solid rgb(255 255 255 / 8%);
 
-      img {
-        width: @logo-width;
-        height: @logo-width;
+      .@{logo-prefix-cls} {
+        width: 100%;
+        justify-content: center;
+        padding-left: 0;
       }
     }
 
@@ -192,6 +217,10 @@
           opacity: 1;
         }
       }
+    }
+
+    &-logo.light {
+      border-bottom-color: rgb(238 238 238);
     }
   }
 </style>

@@ -13,8 +13,8 @@ import {
 } from '@/enums';
 import {
   APP_PRESET_COLOR_LIST,
+  DEFAULT_SIDER_BG_COLOR,
   HEADER_PRESET_BG_COLOR_LIST,
-  SIDE_BAR_BG_COLOR_LIST,
 } from './designSetting';
 
 // ! You need to clear the browser cache after the change
@@ -86,7 +86,7 @@ const setting: ProjectConfig = {
   // Menu configuration
   menuSetting: {
     // sidebar menu bg color
-    bgColor: SIDE_BAR_BG_COLOR_LIST[0],
+    bgColor: DEFAULT_SIDER_BG_COLOR,
     //  Whether to fix the left menu
     fixed: true,
     // Menu collapse
@@ -103,13 +103,13 @@ const setting: ProjectConfig = {
     // Whether to show dom
     hidden: false,
     // Menu width
-    menuWidth: 210,
+    menuWidth: 218,
     // Menu mode
     mode: MenuModeEnum.INLINE,
     // Menu type
     type: MenuTypeEnum.SIDEBAR,
     // Menu theme
-    theme: ThemeEnum.LIGHT,
+    theme: ThemeEnum.DARK,
     // Split menu
     split: false,
     // Top menu layout

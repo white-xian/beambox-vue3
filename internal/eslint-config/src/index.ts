@@ -25,6 +25,8 @@ export default {
     'plugin:prettier/recommended',
   ],
   rules: {
+    // Keep Prettier as the default formatter, but don't surface style drift as ESLint errors.
+    'prettier/prettier': 'off',
     'no-unused-vars': 'off',
     'no-case-declarations': 'off',
     'no-use-before-define': 'off',

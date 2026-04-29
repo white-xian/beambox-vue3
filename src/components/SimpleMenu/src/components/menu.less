@@ -61,7 +61,8 @@
         }
 
         &-selected {
-          background-color: @primary-color !important;
+          background-color: @sider-dark-lighten-bg-color !important;
+          // margin: 5px 0;
           color: #fff;
         }
       }
@@ -155,10 +156,15 @@
     &-vertical &-submenu-title {
       position: relative;
       z-index: 1;
-      padding: 14px 24px;
+      min-height: 36px;
+      padding: 0 16px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      line-height: 36px;
+      border-radius: 3px;
+      transition: background-color @transition-time @ease-in-out,
+        color @transition-time @ease-in-out;
       cursor: pointer;
 
       //&:hover {
@@ -191,6 +197,7 @@
     &-vertical&-collapse &-item,
     &-vertical&-collapse &-submenu-title {
       padding: 0;
+      justify-content: center;
     }
 
     &-vertical &-submenu-title-icon {
@@ -214,7 +221,7 @@
       }
 
       .@{menu-prefix-cls}-item {
-        padding-left: 43px;
+        padding-left: 30px;
       }
     }
 
@@ -264,17 +271,44 @@
       }
     }
 
+    &-dark&-vertical {
+      padding: 16px 8px 24px;
+      background-color: @sider-dark-bg-color;
+
+      > li {
+        margin-bottom: 12px;
+      }
+
+      > li:last-child {
+        margin-bottom: 0;
+      }
+    }
+
     &-dark&-vertical &-item,
     &-dark&-vertical &-submenu-title {
       color: @menu-dark-subsidiary-color;
+      background-color: transparent;
+    }
 
+    &-dark&-vertical &-item {
       &-active:not(.@{menu-prefix-cls}-submenu) {
-        background-color: @primary-color !important;
+        background-color: @sider-dark-lighten-bg-color !important;
         color: #fff !important;
+        // margin: 5px 0;
       }
 
       &:hover {
+        background-color: @sider-dark-lighten-bg-color;
         color: #fff;
+        // margin: 5px 0;
+      }
+    }
+
+    &-dark&-vertical &-submenu-title {
+      &:hover {
+        background-color: @sider-dark-darken-bg-color;
+        color: #fff;
+        // margin: 5px 0;
       }
     }
 
@@ -302,21 +336,31 @@
     }
 
     &-dark&-vertical &-submenu &-item {
+      margin: 5px 0;
+
+      &:last-child {
+        margin-bottom: 5px;
+      }
+
       &-active,
       &-active:hover {
         border-right: none;
+        background-color: @sider-dark-lighten-bg-color !important;
         color: #fff;
+        margin-bottom: 5px;
       }
     }
 
     &-dark&-vertical &-child-item-active > &-submenu-title {
+      background-color: @sider-dark-darken-bg-color;
       color: #fff;
+      // margin: 5px 0;
     }
 
     &-dark&-vertical &-opened {
       .@{menu-prefix-cls}-submenu-has-parent-submenu {
         .@{menu-prefix-cls}-submenu-title {
-          background-color: transparent;
+          background-color: @sider-dark-darken-bg-color;
         }
       }
     }

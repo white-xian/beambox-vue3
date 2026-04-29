@@ -36,7 +36,7 @@ export const getEnterpriseNameByDomainName = () =>
 /**
  * @description: user oauth2 login api
  */
-export function oauthLoginApi(params: LoginPM, mode: ErrorMessageMode = 'modal') {
+export function oauthLoginApi(params: LoginPM, mode: ErrorMessageMode = 'message') {
 	params.grant_type = 'password'
 	params.account_type = 'admin'
 	params.scope = 'server'

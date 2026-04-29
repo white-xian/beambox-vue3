@@ -4,8 +4,7 @@
   </ul>
 </template>
 
-<script lang="ts" setup>
-  import type { PropType } from 'vue';
+<script setup>
   import {
     computed,
     getCurrentInstance,
@@ -16,10 +15,9 @@
     watch,
     watchEffect,
   } from 'vue';
-  import type { SubMenuProvider } from './types';
   import { useDesign } from '@/hooks/web/useDesign';
   import { propTypes } from '@/utils/propTypes';
-  import { createSimpleRootMenuContext, type MenuEmitterEvents } from './useSimpleMenuContext';
+  import { createSimpleRootMenuContext } from './useSimpleMenuContext';
   import { mitt } from '@/utils/mitt';
 
   defineOptions({ name: 'Menu' });
@@ -28,27 +26,27 @@
     theme: propTypes.oneOf(['light', 'dark']).def('light'),
     activeName: propTypes.oneOfType([propTypes.string, propTypes.number]),
     openNames: {
-      type: Array as PropType<string[]>,
+      type: Array,
       default: () => [],
     },
     accordion: propTypes.bool.def(true),
     width: propTypes.string.def('100%'),
-    collapsedWidth: propTypes.string.def('48px'),
+    collapsedWidth: propTypes.string.def('54px'),
     indentSize: propTypes.number.def(16),
     collapse: propTypes.bool.def(true),
     activeSubMenuNames: {
-      type: Array as PropType<(string | number)[]>,
+      type: Array,
       default: () => [],
     },
   });
 
   const emit = defineEmits(['select', 'open-change']);
 
-  const rootMenuEmitter = mitt<MenuEmitterEvents>();
+  const rootMenuEmitter = mitt();
   const instance = getCurrentInstance();
 
-  const currentActiveName = ref<string | number>('');
-  const openedNames = ref<(string | number)[]>([]);
+  const currentActiveName = ref('');
+  const openedNames = ref([]);
 
   const { prefixCls } = useDesign('menu');
 
@@ -94,13 +92,13 @@
     rootMenuEmitter.emit('on-update-opened', openedNames.value);
   }
 
-  function addSubMenu(name: string | number) {
+  function addSubMenu(name) {
     if (openedNames.value.includes(name)) return;
     openedNames.value.push(name);
     updateOpened();
   }
 
-  function removeSubMenu(name: string | number) {
+  function removeSubMenu(name) {
     openedNames.value = openedNames.value.filter((item) => item !== name);
     updateOpened();
   }
@@ -110,13 +108,13 @@
     updateOpened();
   }
 
-  function sliceIndex(index: number) {
+  function sliceIndex(index) {
     if (index === -1) return;
     openedNames.value = openedNames.value.slice(0, index + 1);
     updateOpened();
   }
 
-  provide<SubMenuProvider>(`subMenu:${instance?.uid}`, {
+  provide(`subMenu:${instance?.uid}`, {
     addSubMenu,
     removeSubMenu,
     getOpenNames: () => openedNames.value,
@@ -124,13 +122,13 @@
     isRemoveAllPopup,
     sliceIndex,
     level: 0,
-    props: props as any,
+    props,
   });
 
   onMounted(() => {
     openedNames.value = !props.collapse ? [...props.openNames] : [];
     updateOpened();
-    rootMenuEmitter.on('on-menu-item-select', (name: string | number) => {
+    rootMenuEmitter.on('on-menu-item-select', (name) => {
       currentActiveName.value = name;
 
       nextTick(() => {

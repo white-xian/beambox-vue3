@@ -22,6 +22,53 @@ import { AxiosRetry } from '@/utils/http/axios/axiosRetry'
 const globSetting = useGlobSetting()
 const urlPrefix = globSetting.urlPrefix
 const { createMessage, createErrorModal, createSuccessModal } = useMessage()
+const COMMON_ENGLISH_ERROR_PATTERNS = [
+	/^Request failed with status code \d+$/i,
+	/^Network Error$/i,
+	/^timeout of \d+ms exceeded$/i,
+	/^(Bad Request|Unauthorized|Forbidden|Not Found|Method Not Allowed|Request Timeout|Internal Server Error|Bad Gateway|Service Unavailable|Gateway Timeout)$/i,
+]
+
+function isAsciiOnlyMessage(message: string) {
+	return Array.from(message).every((char) => char.charCodeAt(0) <= 127)
+}
+
+function normalizeDisplayErrorMessage(message: unknown) {
+	if (!isString(message)) {
+		return ''
+	}
+
+	const trimmedMessage = message.trim()
+	if (!trimmedMessage) {
+		return ''
+	}
+
+	const isCommonEnglishError = COMMON_ENGLISH_ERROR_PATTERNS.some((pattern) => pattern.test(trimmedMessage))
+	if (isCommonEnglishError) {
+		return ''
+	}
+
+	// 统一使用中文提示，纯英文错误信息回退到状态码映射的中文文案。
+	if (isAsciiOnlyMessage(trimmedMessage)) {
+		return ''
+	}
+
+	return trimmedMessage
+}
+
+function getResponseErrorMessage(data: unknown) {
+	if (isString(data)) {
+		return normalizeDisplayErrorMessage(data)
+	}
+
+	if (!data || typeof data !== 'object') {
+		return ''
+	}
+
+	const responseData = data as Record<string, any>
+	const candidate = responseData.msg ?? responseData.message ?? responseData.error?.message ?? responseData.errorMessage
+	return normalizeDisplayErrorMessage(candidate)
+}
 
 /**
  * @description: 数据处理，方便区分多种处理方式
@@ -168,9 +215,10 @@ const transform: AxiosTransform = {
 		const errorLogStore = useErrorLogStoreWithOut()
 		errorLogStore.addAjaxErrorInfo(error)
 		const { response, code, message, config } = error || {}
-		const errorMessageMode = config?.requestOptions?.errorMessageMode || 'none'
-		const msg: string = response?.data?.error?.message ?? ''
+		const errorMessageMode = config?.requestOptions?.errorMessageMode ?? 'message'
+		const msg = getResponseErrorMessage(response?.data)
 		const err: string = error?.toString?.() ?? ''
+		const messageText = String(message ?? '')
 		let errMessage = ''
 
 		if (axios.isCancel(error)) {
@@ -178,7 +226,7 @@ const transform: AxiosTransform = {
 		}
 
 		try {
-			if (code === 'ECONNABORTED' && message.indexOf('timeout') !== -1) {
+			if (code === 'ECONNABORTED' && messageText.indexOf('timeout') !== -1) {
 				errMessage = '接口请求超时,请刷新页面重试!'
 			}
 			if (err?.includes('Network Error')) {

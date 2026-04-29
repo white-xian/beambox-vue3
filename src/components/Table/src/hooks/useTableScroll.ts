@@ -74,11 +74,33 @@ export function useTableScroll(
   let footerEl: HTMLElement | null;
   let bodyEl: HTMLElement | null;
 
-  /**
-   * table wrapper padding 的高度
-   * @description 来自于 .vben-basic-table .ant-table-wrapper
-   */
-  const tableWrapperPadding = 6;
+  function toPx(value?: string) {
+    const parsedValue = Number.parseFloat(value || '0');
+    return Number.isFinite(parsedValue) ? parsedValue : 0;
+  }
+
+  function syncNativeScrollbarGutter(bodyEl: HTMLElement, tableEl: Element) {
+    const gutterWidth = Math.max(bodyEl.offsetWidth - bodyEl.clientWidth, 0);
+    const currentValue = getComputedStyle(tableEl).getPropertyValue('--nn-scrollbar-gutter');
+    const currentWidth = Number.parseFloat(currentValue || '0');
+    const sizeValue = getComputedStyle(tableEl).getPropertyValue('--nn-scrollbar-size');
+    const fallbackWidth = Number.parseFloat(sizeValue || '0');
+    const effectiveWidth =
+      gutterWidth > 0 || !Number.isFinite(fallbackWidth) || fallbackWidth <= 0
+        ? gutterWidth
+        : fallbackWidth;
+
+    if (Number.isFinite(currentWidth) && Math.abs(currentWidth - effectiveWidth) < 0.5) return;
+
+    (tableEl as HTMLElement).style.setProperty('--nn-scrollbar-gutter', `${effectiveWidth}px`);
+  }
+
+  function getTableWrapperBottomPadding(tableEl: Element) {
+    const tableWrapperEl = tableEl.parentElement as HTMLElement | null;
+    if (!tableWrapperEl) return 0;
+    // 表格外层 padding 可能被页面样式覆盖，这里读取真实值，避免样式和高度计算两边各改一份。
+    return toPx(getComputedStyle(tableWrapperEl).paddingBottom);
+  }
 
   function handleScrollBar(bodyEl: HTMLElement, tableEl: Element) {
     const hasScrollBarY = bodyEl.scrollHeight > bodyEl.clientHeight;
@@ -111,7 +133,8 @@ export function useTableScroll(
     if (!isBoolean(pagination)) {
       // 从 Dom 获取
       if (!paginationEl) {
-        paginationEl = tableEl.querySelector('.ant-pagination') as HTMLElement;
+        // 分页已经由 AntD Pagination 改成 Element Pagination，DOM 类名同步换成当前封装的分页容器。
+        paginationEl = tableEl.parentElement?.querySelector('.xueyi-basic-table__pagination') as HTMLElement;
       }
       if (paginationEl) {
         // 分页 margin-top
@@ -136,7 +159,8 @@ export function useTableScroll(
     let footerHeight = 0;
     if (!isBoolean(pagination)) {
       if (!footerEl) {
-        footerEl = tableEl.querySelector('.ant-table-footer') as HTMLElement;
+        // Element 表格 footer 的 DOM 类名与 AntD 不同，这里用于计算 summary/footer 占用高度。
+        footerEl = tableEl.querySelector('.el-table__footer-wrapper') as HTMLElement;
       } else {
         const offsetHeight = footerEl.offsetHeight;
         footerHeight += offsetHeight || 0;
@@ -159,26 +183,18 @@ export function useTableScroll(
    * @param headEl table 页头 element
    * @returns number
    */
-  function calcBottomAndPaddingHeight(tableEl: Element, headEl: Element) {
+  function calcBottomAndPaddingHeight(headEl: Element) {
     const { isCanResizeParent } = unref(propsRef);
-    let bottomIncludeBody = 0;
-    if (unref(wrapRef) && isCanResizeParent) {
-      // 继承父元素高度
-      const wrapHeight = unref(wrapRef)?.offsetHeight ?? 0;
-
-      let formHeight = unref(formRef)?.$el.offsetHeight ?? 0;
-      if (formHeight) {
-        // 来自于 .vben-basic-table-form-container .ant-form 以及 .vben-basic-table-form-container
-        formHeight += 16 + 16 * 2;
-      }
-
-      bottomIncludeBody = wrapHeight - tableWrapperPadding - formHeight;
-    } else {
-      // 缺省 wrapRef 情况下
-      bottomIncludeBody = getViewportOffset(headEl).bottomIncludeBody;
+    const wrapEl = unref(wrapRef);
+    if (wrapEl && isCanResizeParent) {
+      // 父容器固定高度时，直接算“表头顶部到父容器底部”的真实距离，表单/header 高度变化会自动体现在这里。
+      const wrapRect = wrapEl.getBoundingClientRect();
+      const headRect = headEl.getBoundingClientRect();
+      return Math.max(wrapRect.bottom - headRect.top, 0);
     }
 
-    return bottomIncludeBody;
+    // 普通页面按视口底部计算，“表头顶部到浏览器底部”的距离。
+    return getViewportOffset(headEl).bottomIncludeBody;
   }
 
   /**
@@ -243,21 +259,21 @@ export function useTableScroll(
    * 根据样式返回一些间距高度
    * @returns number
    */
-  function getMarginPaddingHeight() {
+  function getMarginPaddingHeight(tableEl: Element) {
     const { isCanResizeParent } = unref(propsRef);
+    const tableWrapperPaddingBottom = getTableWrapperBottomPadding(tableEl);
 
     if (unref(wrapRef) && isCanResizeParent) {
-      // 继承父元素高度
-      return tableWrapperPadding;
+      // 父容器高度已经固定，只需要扣掉表格 wrapper 的底部 padding。
+      return tableWrapperPaddingBottom;
     }
     return (
-      tableWrapperPadding + 16 // 来自于 .vben-basic-table-form-container 或是 .p-4
+      tableWrapperPaddingBottom + 16 // 普通页面保留内容区底部安全间距，避免贴底或 1px 溢出。
     );
   }
 
   async function calcTableHeight() {
     const { resizeHeightOffset, maxHeight } = unref(propsRef);
-    const tableData = unref(getDataSourceRef);
 
     const table = unref(tableElRef);
     if (!table) return;
@@ -266,31 +282,33 @@ export function useTableScroll(
     if (!tableEl) return;
 
     if (!bodyEl) {
-      bodyEl = tableEl.querySelector('.ant-table-body');
+      // Element Plus 的真实滚动容器在 el-scrollbar__wrap 上，回退到 body-wrapper 兼容不同版本 DOM。
+      bodyEl = tableEl.querySelector('.el-table__body-wrapper .el-scrollbar__wrap, .el-table__body-wrapper');
       if (!bodyEl) return;
     }
 
     handleScrollBar(bodyEl, tableEl);
+    syncNativeScrollbarGutter(bodyEl, tableEl);
 
     bodyEl!.style.height = 'unset';
 
-    if (!unref(getCanResize) || !unref(tableData) || tableData.length === 0) return;
+    if (!unref(getCanResize)) return;
 
     await nextTick();
     // Add a delay to get the correct bottomIncludeBody paginationHeight footerHeight headerHeight
 
-    const headEl = tableEl.querySelector('.ant-table-thead ');
+    const headEl = tableEl.querySelector('.el-table__header-wrapper');
 
     if (!headEl) return;
 
     const paginationHeight = caclPaginationHeight(tableEl);
     const footerHeight = caclFooterHeight(tableEl);
     const headerHeight = calcHeaderHeight(headEl);
-    const bottomIncludeBody = calcBottomAndPaddingHeight(tableEl, headEl);
+    const bottomIncludeBody = calcBottomAndPaddingHeight(headEl);
 
     const modalHeight = calcModalHeight(tableEl);
 
-    const marginPaddingHeight = getMarginPaddingHeight();
+    const marginPaddingHeight = getMarginPaddingHeight(tableEl);
 
     // Math.floor 宁愿小1px，也不溢出
     let height = Math.floor(
@@ -313,6 +331,8 @@ export function useTableScroll(
     setHeight(height);
 
     bodyEl!.style.height = `${height}px`;
+    syncNativeScrollbarGutter(bodyEl, tableEl);
+    table?.doLayout?.();
   }
 
   useWindowSizeFn(calcTableHeight, { wait: 280 });

@@ -1,213 +1,197 @@
 <template>
   <div :class="[prefixCls, `${prefixCls}--${theme}`]">
-    <Breadcrumb>
-      <template v-for="routeItem in routes" :key="routeItem.name">
-        <BreadcrumbItem>
-          <Icon :icon="getIcon(routeItem)" v-if="getShowBreadCrumbIcon && getIcon(routeItem)" />
-          <span v-if="!hasRedirect(routes, routeItem)">
-            {{ routeItem.meta.title || routeItem.name }}
+    <el-breadcrumb separator="/">
+      <transition-group name="breadcrumb">
+        <el-breadcrumb-item v-for="(routeItem, index) in routes" :key="routeItem.path || routeItem.name">
+          <span v-if="index === routes.length - 1" class="no-redirect">
+            {{ getRouteTitle(routeItem) }}
           </span>
-          <router-link v-else to="" @click="handleClick(routeItem)">
-            {{ routeItem.meta.title || routeItem.name }}
-          </router-link>
-          <template v-if="routeItem.children && !routeItem.meta?.hideChildrenInMenu" #overlay>
-            <Menu>
-              <template v-for="childItem in routeItem.children" :key="childItem.name">
-                <MenuItem>
-                  <Icon
-                    :icon="getIcon(childItem)"
-                    v-if="getShowBreadCrumbIcon && getIcon(childItem)"
-                  />
-                  <span v-if="!hasRedirect(routes, childItem)">
-                    {{ childItem.meta?.title || childItem.name }}
-                  </span>
-                  <router-link v-else to="" @click="handleClick(childItem)">
-                    {{ childItem.meta?.title || childItem.name }}
-                  </router-link>
-                </MenuItem>
-              </template>
-            </Menu>
-          </template>
-        </BreadcrumbItem>
-      </template>
-    </Breadcrumb>
+          <a v-else @click.prevent="handleClick(routeItem)">
+            {{ getRouteTitle(routeItem) }}
+          </a>
+        </el-breadcrumb-item>
+      </transition-group>
+    </el-breadcrumb>
   </div>
 </template>
 
-<script lang="ts" setup>
-  import type { RouteLocationMatched } from 'vue-router';
-  import { useRouter } from 'vue-router';
-  import { ref, watchEffect } from 'vue';
-  import { Breadcrumb, BreadcrumbItem, Menu, MenuItem } from 'ant-design-vue';
-  import Icon from '@/components/Icon/Icon.vue';
-  import { useDesign } from '@/hooks/web/useDesign';
-  import { useRootSetting } from '@/hooks/setting/useRootSetting';
-  import { useGo } from '@/hooks/web/usePage';
-  import { propTypes } from '@/utils/propTypes';
-  import { isString } from '@/utils/core/ObjectUtil';
-  import { filter } from '@/utils/helper/treeHelper';
-  import { getMenus } from '@/router/menus';
+<script setup>
+import { ref, watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
+import { useDesign } from '@/hooks/web/useDesign'
+import { useGo } from '@/hooks/web/usePage'
+import { filter } from '@/utils/helper/treeHelper'
+import { isString } from '@/utils/core/ObjectUtil'
+import { getMenus } from '@/router/menus'
+import { REDIRECT_NAME } from '@/router/constant'
+import { getAllParentPath } from '@/router/helper/menuHelper'
 
-  import { REDIRECT_NAME } from '@/router/constant';
-  import { getAllParentPath } from '@/router/helper/menuHelper';
+defineOptions({ name: 'LayoutBreadcrumb' })
 
-  defineOptions({ name: 'LayoutBreadcrumb' });
+defineProps({
+  theme: {
+    type: String,
+    default: 'light',
+  },
+})
 
-  defineProps({
-    theme: propTypes.oneOf(['dark', 'light']),
-  });
+const routes = ref([])
+const { currentRoute } = useRouter()
+const { prefixCls } = useDesign('layout-breadcrumb')
+const go = useGo()
 
-  const routes = ref<RouteLocationMatched[]>([]);
-  const { currentRoute } = useRouter();
-  const { prefixCls } = useDesign('layout-breadcrumb');
-  const { getShowBreadCrumbIcon } = useRootSetting();
-  const go = useGo();
+watchEffect(async () => {
+  if (currentRoute.value.name === REDIRECT_NAME) return
 
-  watchEffect(async () => {
-    if (currentRoute.value.name === REDIRECT_NAME) return;
-    const menus = await getMenus();
+  const menus = await getMenus()
+  const routeMatched = currentRoute.value.matched
+  const currentMatched = routeMatched?.[routeMatched.length - 1]
+  let path = currentRoute.value.path
 
-    const routeMatched = currentRoute.value.matched;
-    const cur = routeMatched?.[routeMatched.length - 1];
-    let path = currentRoute.value.path;
-
-    if (cur && cur?.meta?.currentActiveMenu) {
-      path = cur.meta.currentActiveMenu as string;
-    }
-
-    const parent = getAllParentPath(menus, path);
-    const filterMenus = menus.filter((item) => item.path === parent[0]);
-    const matched = getMatched(filterMenus, parent) as any;
-
-    if (!matched || matched.length === 0) {
-      routes.value = [];
-      return;
-    }
-
-    const breadcrumbList = filterItem(matched);
-
-    if (currentRoute.value.meta?.currentActiveMenu && !currentRoute.value.meta?.hideBreadcrumb) {
-      breadcrumbList.push({
-        ...currentRoute.value,
-        name: currentRoute.value.meta?.title || currentRoute.value.name,
-      } as unknown as RouteLocationMatched);
-    }
-    routes.value = breadcrumbList;
-  });
-
-  function getMatched(menus, parent: string[]) {
-    const matched: any[] = [];
-    menus.forEach((item) => {
-      if (parent.includes(item.path)) {
-        matched.push({
-          ...item,
-          name: item.meta?.title || item.name,
-        });
-      }
-      if (item.children?.length) {
-        matched.push(...getMatched(item.children, parent));
-      }
-    });
-    return matched;
+  if (currentMatched?.meta?.currentActiveMenu) {
+    path = currentMatched.meta.currentActiveMenu
   }
 
-  function filterItem(list: RouteLocationMatched[]) {
-    return filter(list, (item) => {
-      const { meta, name } = item;
-      if (!meta) {
-        return !!name;
-      }
-      const { title, hideBreadcrumb, hideMenu } = meta;
-      if (!title || hideBreadcrumb || hideMenu) {
-        return false;
-      }
-      return true;
-    }).filter((item) => !item.meta?.hideBreadcrumb);
+  const parent = getAllParentPath(menus, path)
+  const filterMenus = menus.filter((item) => item.path === parent[0])
+  const matched = getMatched(filterMenus, parent)
+
+  if (!matched.length) {
+    routes.value = []
+    return
   }
 
-  function handleClick(route) {
-    const { children, redirect, meta } = route;
+  const breadcrumbList = filterItem(matched)
 
-    if (children?.length && !redirect) {
-      return;
+  if (currentRoute.value.meta?.currentActiveMenu && !currentRoute.value.meta?.hideBreadcrumb) {
+    breadcrumbList.push({
+      ...currentRoute.value,
+      name: currentRoute.value.meta?.title || currentRoute.value.name,
+    })
+  }
+
+  routes.value = breadcrumbList
+})
+
+function getMatched(menus, parentPaths) {
+  const matched = []
+
+  menus.forEach((item) => {
+    if (parentPaths.includes(item.path)) {
+      matched.push({
+        ...item,
+        name: item.meta?.title || item.name,
+      })
     }
-    if (meta?.carryParam) {
-      return;
+
+    if (item.children?.length) {
+      matched.push(...getMatched(item.children, parentPaths))
+    }
+  })
+
+  return matched
+}
+
+function filterItem(list) {
+  return filter(list, (item) => {
+    const { meta, name } = item
+    if (!meta) {
+      return !!name
     }
 
-    if (redirect && isString(redirect)) {
-      go(redirect);
-    } else {
-      let goPath = '';
-      if (route.path) {
-        goPath = route.path;
-      } else {
-        const lastPath = '';
-        goPath = `${lastPath}`;
-      }
-      goPath = /^\//.test(goPath) ? goPath : `/${goPath}`;
-      go(goPath);
+    const { title, hideBreadcrumb, hideMenu } = meta
+    if (!title || hideBreadcrumb || hideMenu) {
+      return false
     }
+
+    return true
+  }).filter((item) => !item.meta?.hideBreadcrumb)
+}
+
+function handleClick(route) {
+  const { children, redirect, meta } = route
+
+  if (children?.length && !redirect) {
+    return
   }
 
-  function hasRedirect(routes, route) {
-    return routes.indexOf(route) !== routes.length - 1;
+  if (meta?.carryParam) {
+    return
   }
 
-  function getIcon(route) {
-    return route.icon || route.meta?.icon;
+  if (redirect && isString(redirect)) {
+    go(redirect)
+    return
   }
+
+  let goPath = route.path || ''
+  goPath = /^\//.test(goPath) ? goPath : `/${goPath}`
+  go(goPath)
+}
+
+function getRouteTitle(route) {
+  return route.meta?.title || route.name
+}
 </script>
+
 <style lang="less">
-  @prefix-cls: ~'@{namespace}-layout-breadcrumb';
+@prefix-cls: ~'@{namespace}-layout-breadcrumb';
 
-  .@{prefix-cls} {
-    display: flex;
-    align-items: center;
-    padding: 0 8px;
+.@{prefix-cls} {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 14px;
 
-    .ant-breadcrumb-link {
-      .anticon {
-        margin-right: 4px;
-        margin-bottom: 2px;
-      }
+  .el-breadcrumb {
+    line-height: @header-height;
+  }
+
+  .el-breadcrumb__inner,
+  .el-breadcrumb__inner a {
+    font-weight: 400;
+  }
+
+  .el-breadcrumb__separator {
+    color: #c0c4cc;
+  }
+
+  .no-redirect {
+    color: @breadcrumb-item-normal-color;
+    cursor: text;
+  }
+
+  &--light {
+    .el-breadcrumb__inner {
+      color: #606266;
     }
 
-    &--light {
-      .ant-breadcrumb-link {
-        color: @breadcrumb-item-normal-color;
+    .el-breadcrumb__inner a {
+      color: #606266;
 
-        a {
-          color: rgb(0 0 0 / 65%);
-
-          &:hover {
-            color: @primary-color;
-          }
-        }
-      }
-
-      .ant-breadcrumb-separator {
-        color: @breadcrumb-item-normal-color;
-      }
-    }
-
-    &--dark {
-      .ant-breadcrumb-link {
-        color: rgb(255 255 255 / 60%);
-
-        a {
-          color: rgb(255 255 255 / 80%);
-
-          &:hover {
-            color: @white;
-          }
-        }
-      }
-
-      .ant-breadcrumb-separator,
-      .anticon {
-        color: rgb(255 255 255 / 80%);
+      &:hover {
+        color: #409eff;
       }
     }
   }
+
+  &--dark {
+    .el-breadcrumb__inner {
+      color: rgb(255 255 255 / 80%);
+    }
+
+    .el-breadcrumb__inner a {
+      color: rgb(255 255 255 / 80%);
+
+      &:hover {
+        color: @white;
+      }
+    }
+
+    .no-redirect,
+    .el-breadcrumb__separator {
+      color: rgb(255 255 255 / 60%);
+    }
+  }
+}
 </style>

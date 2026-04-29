@@ -1,6 +1,11 @@
 import { colorIsDark, darken, lighten } from '@/utils/core/ColorUtil';
 import { useAppStore } from '@/store/modules/app';
 import { ThemeEnum } from '@/enums';
+import {
+  DEFAULT_SIDER_ACTIVE_BG_COLOR,
+  DEFAULT_SIDER_BG_COLOR,
+  DEFAULT_SIDER_EXPANDED_BG_COLOR,
+} from '@/settings/designSetting';
 import { setCssVar } from './util';
 
 const HEADER_BG_COLOR_VAR = '--header-bg-color';
@@ -55,21 +60,34 @@ export function updateSidebarBgColor(color?: string) {
   const darkMode = appStore.getDarkMode === ThemeEnum.DARK;
   if (!color) {
     if (darkMode) {
-      color = '#212121';
+      color = DEFAULT_SIDER_BG_COLOR;
     } else {
       color = appStore.getMenuSetting.bgColor;
     }
   }
-  setCssVar(SIDER_DARK_BG_COLOR, color);
-  setCssVar(SIDER_DARK_DARKEN_BG_COLOR, darken(color!, 6));
-  setCssVar(SIDER_LIGHTEN_BG_COLOR, lighten(color!, 5));
+  const normalizedColor = color?.toLowerCase();
+  const isLight = ['#fff', '#ffffff'].includes(normalizedColor || '');
+  const sidebarBgColor = color!;
+  const useDefaultSidebarPalette =
+    !isLight && normalizedColor === DEFAULT_SIDER_BG_COLOR.toLowerCase();
+
+  setCssVar(SIDER_DARK_BG_COLOR, sidebarBgColor);
+  setCssVar(
+    SIDER_DARK_DARKEN_BG_COLOR,
+    useDefaultSidebarPalette
+      ? DEFAULT_SIDER_EXPANDED_BG_COLOR
+      : darken(sidebarBgColor, 6),
+  );
+  setCssVar(
+    SIDER_LIGHTEN_BG_COLOR,
+    useDefaultSidebarPalette ? DEFAULT_SIDER_ACTIVE_BG_COLOR : lighten(sidebarBgColor, 5),
+  );
 
   // only #ffffff is light
   // Only when the background color is #fff, the theme of the menu will be changed to light
-  const isLight = ['#fff', '#ffffff'].includes(color!.toLowerCase());
-
   appStore.setProjectConfig({
     menuSetting: {
+      bgColor: sidebarBgColor,
       theme: isLight && !darkMode ? ThemeEnum.LIGHT : ThemeEnum.DARK,
     },
   });

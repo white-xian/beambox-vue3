@@ -1,25 +1,118 @@
-@header-trigger-prefix-cls: ~'@{namespace}-layout-header-trigger';
 @header-prefix-cls: ~'@{namespace}-layout-header';
 @breadcrumb-prefix-cls: ~'@{namespace}-layout-breadcrumb';
 @logo-prefix-cls: ~'@{namespace}-app-logo';
 
 .ant-layout .@{header-prefix-cls} {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   height: @header-height;
-  margin-left: -1px;
   padding: 0;
+  line-height: normal;
   background-color: @white;
-  color: @white;
-  line-height: @header-height;
+  color: @text-color-base;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+
+  &__navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 18px 0 8px;
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: 100%;
+  }
+
+  &__logo {
+    min-width: 218px;
+    height: @header-height;
+    padding: 0 12px 0 8px;
+    font-size: 14px;
+  }
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  &__menu {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+    height: 100%;
+
+    .ant-menu-horizontal {
+      height: 100%;
+      border-bottom: 0;
+      background-color: transparent;
+
+      &::after {
+        display: none;
+      }
+
+      > .ant-menu-item,
+      > .ant-menu-submenu {
+        height: @header-height;
+        line-height: @header-height;
+      }
+    }
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin-left: auto;
+  }
+
+  &__action-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: @header-height;
+    padding: 0 8px;
+    color: #606266;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    .app-iconify {
+      padding: 0;
+      font-size: 16px !important;
+    }
+
+    .ant-badge {
+      height: @header-height;
+      line-height: @header-height;
+    }
+
+    .ant-badge-dot {
+      top: 14px;
+      right: 2px;
+    }
+
+    &:hover {
+      background-color: @header-light-bg-hover-color;
+      color: @primary-color;
+    }
+  }
 
   &--mobile {
+    .@{header-prefix-cls}__navbar {
+      padding-right: 8px;
+    }
+
     .@{breadcrumb-prefix-cls},
-    .error-action,
-    .notify-item,
-    .fullscreen-item {
-      display: none;
+    .@{header-prefix-cls}__menu,
+    .@{header-prefix-cls}__action-item {
+      display: none !important;
     }
 
     .@{logo-prefix-cls} {
@@ -31,12 +124,8 @@
       }
     }
 
-    .@{header-trigger-prefix-cls} {
-      padding: 0 4px 0 8px !important;
-    }
-
-    .@{header-prefix-cls}-action {
-      padding-right: 4px;
+    .@{header-prefix-cls}__trigger {
+      padding: 0 6px;
     }
   }
 
@@ -48,96 +137,10 @@
     width: 100%;
   }
 
-  &-logo {
-    min-width: 192px;
-    height: @header-height;
-    padding: 0 10px;
-    font-size: 14px;
-
-    img {
-      width: @logo-width;
-      height: @logo-width;
-      margin-right: 2px;
-    }
-  }
-
-  &-left {
-    display: flex;
-    align-items: center;
-    height: 100%;
-
-    .@{header-trigger-prefix-cls} {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      padding: 1px 10px 0;
-      cursor: pointer;
-
-      .anticon {
-        font-size: 16px;
-      }
-
-      &.light {
-        &:hover {
-          background-color: @header-light-bg-hover-color;
-        }
-
-        svg {
-          fill: #000;
-        }
-      }
-
-      &.dark {
-        &:hover {
-          background-color: @header-dark-bg-hover-color;
-        }
-      }
-    }
-  }
-
-  &-menu {
-    flex: 1;
-    align-items: center;
-    min-width: 0;
-    height: 100%;
-  }
-
-  &-action {
-    display: flex;
-    // padding-right: 12px;
-    align-items: center;
-    min-width: 180px;
-
-    &__item {
-      display: flex !important;
-      align-items: center;
-      height: @header-height;
-      padding: 0 2px;
-      font-size: 1.2em;
-      cursor: pointer;
-
-      .ant-badge {
-        height: @header-height;
-        line-height: @header-height;
-      }
-
-      .ant-badge-dot {
-        top: 14px;
-        right: 2px;
-      }
-    }
-
-    span[role='img'] {
-      padding: 0 8px;
-    }
-  }
-
   &--light {
-    border-bottom: 1px solid @header-light-bottom-border-color;
-    border-left: 1px solid @header-light-bottom-border-color;
     background-color: @white !important;
 
-    .@{header-prefix-cls}-logo {
+    .@{header-prefix-cls}__logo {
       color: @text-color-base;
 
       &:hover {
@@ -145,54 +148,46 @@
       }
     }
 
-    .@{header-prefix-cls}-action {
-      &__item {
-        color: @text-color-base;
+    .@{header-prefix-cls}__trigger.light:hover {
+      background-color: @header-light-bg-hover-color;
+    }
 
-        .app-iconify {
-          padding: 0 10px;
-          font-size: 16px !important;
+    .@{header-prefix-cls}__menu {
+      .ant-menu-horizontal {
+        > .ant-menu-item,
+        > .ant-menu-submenu {
+          color: #606266;
         }
 
-        &:hover {
-          background-color: @header-light-bg-hover-color;
+        > .ant-menu-item:hover,
+        > .ant-menu-item-selected,
+        > .ant-menu-submenu:hover,
+        > .ant-menu-submenu-selected {
+          color: @primary-color;
         }
-      }
-
-      &-icon,
-      span[role='img'] {
-        color: @text-color-base;
       }
     }
   }
 
   &--dark {
-    border-bottom: 1px solid @border-color-base;
-    border-left: 1px solid @border-color-base;
     background-color: @header-dark-bg-color !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 
-    .@{header-prefix-cls}-logo {
-      &:hover {
-        background-color: @header-dark-bg-hover-color;
-      }
+    .@{header-prefix-cls}__logo:hover,
+    .@{header-prefix-cls}__trigger.dark:hover {
+      background-color: @header-dark-bg-hover-color;
     }
 
-    .@{header-prefix-cls}-action {
-      &__item {
-        .app-iconify {
-          padding: 0 10px;
-          font-size: 16px !important;
-        }
+    .@{header-prefix-cls}__action-item {
+      color: @white;
 
-        .ant-badge {
-          span {
-            color: @white;
-          }
-        }
+      .app-iconify {
+        color: inherit;
+      }
 
-        &:hover {
-          background-color: @header-dark-bg-hover-color;
-        }
+      &:hover {
+        background-color: @header-dark-bg-hover-color;
+        color: @white;
       }
     }
   }

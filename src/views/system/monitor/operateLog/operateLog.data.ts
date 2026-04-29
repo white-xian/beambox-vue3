@@ -25,6 +25,7 @@ export const columns: BasicColumn[] = [
     title: '模块标题',
     dataIndex: 'title',
     width: 220,
+    fixed: 'left',
   },
   {
     title: '业务类型',
