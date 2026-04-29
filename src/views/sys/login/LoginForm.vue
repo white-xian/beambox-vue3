@@ -29,9 +29,9 @@
 
 		<div class="login-options enter-x">
 			<el-checkbox v-model="rememberMe">{{ TEXT.rememberMe }}</el-checkbox>
-			<button type="button" class="login-link-button" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)">
+			<!-- <button type="button" class="login-link-button" @click="setLoginState(LoginStateEnum.RESET_PASSWORD)">
 				{{ TEXT.forgetPassword }}
-			</button>
+			</button> -->
 		</div>
 
 		<el-button class="login-submit enter-x" type="primary" :loading="loading" @click="handleLogin">
@@ -52,28 +52,29 @@ import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './use
 import { ENTERPRISE_NAME_SESSION_CACHE_KEY, PASSWORD_SESSION_CACHE_KEY, REMEMBER_ME_SESSION_CACHE_KEY, USER_NAME_SESSION_CACHE_KEY } from '@/enums'
 
 const TEXT = {
-	accountLabel: '\u8d26\u53f7',
-	accountPlaceholder: '\u8bf7\u8f93\u5165\u5458\u5de5\u8d26\u53f7',
-	passwordLabel: '\u5bc6\u7801',
-	passwordPlaceholder: '\u8bf7\u8f93\u5165\u5bc6\u7801',
-	codeLabel: '\u9a8c\u8bc1\u7801',
-	codePlaceholder: '\u8bf7\u8f93\u5165\u9a8c\u8bc1\u7801',
-	rememberMe: '\u8bb0\u4f4f\u6211',
-	forgetPassword: '\u5fd8\u8bb0\u5bc6\u7801\uff1f',
-	login: '\u767b\u5f55',
-	loginSuccess: '\u767b\u5f55\u6210\u529f',
-	welcomeBack: '\u6b22\u8fce\u56de\u6765',
-	errorTip: '\u9519\u8bef\u63d0\u793a',
-	networkError: '\u7f51\u7edc\u5f02\u5e38\uff0c\u8bf7\u68c0\u67e5\u60a8\u7684\u7f51\u7edc\u8fde\u63a5\u662f\u5426\u6b63\u5e38',
-	codeLoadErrorShort: '\u9a8c\u8bc1\u7801\u52a0\u8f7d\u5931\u8d25',
-	codeRetryTip: '\u70b9\u51fb\u91cd\u8bd5',
-	codeLoadError: '\u9a8c\u8bc1\u7801\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u70b9\u51fb\u9a8c\u8bc1\u7801\u533a\u57df\u91cd\u8bd5',
-	codeRefreshError: '\u9a8c\u8bc1\u7801\u5237\u65b0\u5931\u8d25\uff0c\u8bf7\u70b9\u51fb\u9a8c\u8bc1\u7801\u533a\u57df\u91cd\u8bd5',
+  accountLabel: '账号',
+  accountPlaceholder: '请输入员工账号',
+  passwordLabel: '密码',
+  passwordPlaceholder: '请输入密码',
+  codeLabel: '验证码',
+  codePlaceholder: '请输入验证码',
+  rememberMe: '记住我',
+  forgetPassword: '忘记密码？',
+  login: '登录',
+  loginSuccess: '登录成功',
+  welcomeBack: '欢迎回来',
+  errorTip: '错误提示',
+  networkError: '网络异常，请检查您的网络连接是否正常',
+  codeLoadErrorShort: '验证码加载失败',
+  codeRetryTip: '点击重试',
+  codeLoadError: '验证码加载失败，请点击验证码区域重试',
+  codeRefreshError: '验证码刷新失败，请点击验证码区域重试',
 }
 
 const userStore = useUserStore()
 const { createMessage } = useMessage()
-const { setLoginState, getLoginState } = useLoginState()
+// const { setLoginState, getLoginState } = useLoginState()
+const { getLoginState } = useLoginState()
 const { getFormRules } = useFormRules()
 
 const formRef = ref()
@@ -183,9 +184,11 @@ function isAsciiOnlyMessage(message) {
 }
 
 function resolveDisplayErrorMessage(error, fallbackMessage) {
-	const responseMessage = error?.response?.data?.msg || error?.response?.data?.message || error?.response?.data?.error?.message
-	if (typeof responseMessage === 'string' && responseMessage.trim() && !isAsciiOnlyMessage(responseMessage.trim())) {
-		return responseMessage.trim()
+	const responseMessages = [error?.response?.data?.msg, error?.response?.data?.message, error?.response?.data?.error?.message, error?.message]
+	for (const responseMessage of responseMessages) {
+		if (typeof responseMessage === 'string' && responseMessage.trim() && !isAsciiOnlyMessage(responseMessage.trim())) {
+			return responseMessage.trim()
+		}
 	}
 
 	return fallbackMessage
@@ -201,9 +204,31 @@ onMounted(() => {
 	width: 100%;
 }
 
+:global(html[data-theme='dark']) {
+	--login-field-label-color: @text-color-base;
+	--login-input-bg-color: #232a3b;
+	--login-input-text-color: @text-color-base;
+	--login-input-placeholder-color: #7f8aa3;
+	--login-input-border-color: #4a5569;
+	--login-input-active-border-color: #7065ff;
+	--login-checkbox-label-color: #a9b3c7;
+	--login-code-bg-color: #232a3b;
+	--login-code-border-color: #4a5569;
+	--login-code-hover-border-color: #7065ff;
+	--login-code-hover-shadow: 0 6px 18px rgb(112 101 255 / 16%);
+	--login-code-placeholder-bg: linear-gradient(135deg, #273149, #1f2638);
+	--login-code-error-border-color: #7d3f45;
+	--login-code-error-bg-color: rgb(133 50 58 / 16%);
+	--login-code-error-hover-border-color: #d86f76;
+	--login-code-error-hover-bg-color: rgb(133 50 58 / 24%);
+	--login-code-error-hover-shadow: 0 0 0 2px rgb(216 111 118 / 14%);
+	--login-code-error-text-color: #ff9c92;
+	--login-code-error-tip-color: #d39088;
+}
+
 .login-field-label {
 	margin-bottom: 10px;
-	color: #4a4a4a;
+	color: var(--login-field-label-color, #4a4a4a);
 	font-size: 14px;
 	line-height: 20px;
 }
@@ -251,45 +276,46 @@ onMounted(() => {
 .login-code-box {
 	display: flex;
 	position: relative;
-	flex: 0 0 145px;
+	flex: 0 0 104px;
 	align-items: center;
 	justify-content: center;
-	width: 145px;
+	width: 104px;
 	height: 40px;
 	overflow: hidden;
 	transition:
 		border-color 0.2s ease,
 		background-color 0.2s ease,
 		box-shadow 0.2s ease;
-	border: 1px solid #d5d9e5;
+	border: 1px solid var(--login-code-border-color, #d5d9e5);
 	border-radius: 4px;
-	background: #fff;
+	background: var(--login-code-bg-color, #fff);
 	cursor: pointer;
 
 	&:hover {
-		border-color: #7065ff;
-		box-shadow: 0 6px 18px rgb(112 101 255 / 12%);
+		// border-color: var(--login-code-hover-border-color, #7065ff);
+    transition: scale(1.5);
+		box-shadow: var(--login-code-hover-shadow, 0 6px 18px rgb(112 101 255 / 12%));
 	}
 }
 
 .login-code-box.is-loading {
-	color: #7065ff;
+	color: var(--login-input-active-border-color, #7065ff);
 	cursor: not-allowed;
 
 	&:hover {
-		border-color: #d5d9e5;
+		border-color: var(--login-code-border-color, #d5d9e5);
 		box-shadow: none;
 	}
 }
 
 .login-code-box.is-error {
-	border-color: #f0b6b6;
-	background: #fff7f7;
+	border-color: var(--login-code-error-border-color, #f0b6b6);
+	background: var(--login-code-error-bg-color, #fff7f7);
 
 	&:hover {
-		border-color: #e46a6a;
-		background: #fff1f1;
-		box-shadow: 0 0 0 2px rgb(228 106 106 / 10%);
+		border-color: var(--login-code-error-hover-border-color, #e46a6a);
+		background: var(--login-code-error-hover-bg-color, #fff1f1);
+		box-shadow: var(--login-code-error-hover-shadow, 0 0 0 2px rgb(228 106 106 / 10%));
 	}
 }
 
@@ -301,7 +327,7 @@ onMounted(() => {
 	width: 100%;
 	height: 100%;
 	gap: 2px;
-	color: #d85c4a;
+	color: var(--login-code-error-text-color, #d85c4a);
 	line-height: 1.2;
 	text-align: center;
 	user-select: none;
@@ -313,7 +339,7 @@ onMounted(() => {
 	}
 
 	small {
-		color: #a56a5f;
+		color: var(--login-code-error-tip-color, #a56a5f);
 		font-size: 11px;
 		line-height: 14px;
 	}
@@ -322,7 +348,7 @@ onMounted(() => {
 .login-code-placeholder {
 	width: 100%;
 	height: 100%;
-	background: linear-gradient(135deg, #eef1ff, #f8f9ff);
+	background: var(--login-code-placeholder-bg, linear-gradient(135deg, #eef1ff, #f8f9ff));
 }
 
 :deep(.el-form-item) {
@@ -337,16 +363,29 @@ onMounted(() => {
 	min-height: 40px;
 	padding: 0 14px;
 	border-radius: 6px;
-	box-shadow: 0 0 0 1px #d8dceb inset;
+	background-color: var(--login-input-bg-color, #fff);
+	box-shadow: 0 0 0 1px var(--login-input-border-color, #d8dceb) inset;
+}
+
+:deep(.el-input__inner) {
+	color: var(--login-input-text-color, #303133);
+}
+
+:deep(.el-input__inner::placeholder) {
+	color: var(--login-input-placeholder-color, #a8abb2);
+}
+
+:deep(.el-input__icon) {
+	color: var(--login-input-placeholder-color, #a8abb2);
 }
 
 :deep(.el-input__wrapper:hover),
 :deep(.el-input__wrapper.is-focus) {
-	box-shadow: 0 0 0 1px #7065ff inset;
+	box-shadow: 0 0 0 1px var(--login-input-active-border-color, #7065ff) inset;
 }
 
 :deep(.el-checkbox__label) {
-	color: #6f7482;
+	color: var(--login-checkbox-label-color, #6f7482);
 	font-size: 12px;
 }
 
@@ -354,4 +393,5 @@ onMounted(() => {
 :deep(.el-button.login-submit:focus) {
 	background: linear-gradient(90deg, #5a55e8 0%, #6658fa 100%);
 }
+
 </style>
