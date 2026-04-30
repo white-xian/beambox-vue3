@@ -118,6 +118,9 @@
     rowKey: 'id',
     bordered: true,
     showIndexColumn: true,
+    indexColumnProps: {
+      fixed: 'left',
+    },
     columns,
     formConfig: {
       labelWidth: 120,

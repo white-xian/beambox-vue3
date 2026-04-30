@@ -86,6 +86,9 @@ const [registerTable, { reload }] = useTable({
 	bordered: true,
 	showIndexColumn: true,
 	columns,
+  indexColumnProps: {
+    fixed: 'left',
+  },
 	formConfig: {
 		labelWidth: 120,
 		schemas: searchFormSchema,
