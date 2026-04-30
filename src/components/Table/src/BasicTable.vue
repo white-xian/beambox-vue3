@@ -10,45 +10,11 @@
 			<div :class="`${prefixCls}__header`" v-if="getHeaderRender">
 				<RenderNode :render="getHeaderRender" />
 			</div>
-			<ElTable
-				ref="tableElRef"
-				v-loading="getLoading"
-				:data="getElementDataSource"
-				:border="getBindValues.bordered"
-				:stripe="getBindValues.striped"
-				:row-key="getElementRowKey"
-				:row-class-name="getElementRowClassName"
-				:height="getElementTableHeight"
-				:tree-props="getElementTreeProps"
-				:default-expand-all="getBindValues.defaultExpandAllRows"
-				:expand-row-keys="getElementExpandedRowKeys"
-				:expand-on-click-row="!!getBindValues.expandRowByClick"
-				:native-scrollbar="true"
-				style="width: 100%"
-				@selection-change="handleElementSelectionChange"
-				@row-click="handleElementRowClick"
-				@row-dblclick="handleElementRowDbClick"
-				@row-contextmenu="handleElementRowContextmenu"
-				@sort-change="handleElementSortChange"
-				@expand-change="handleElementExpandChange"
-			>
+			<ElTable ref="tableElRef" v-loading="getLoading" :data="getElementDataSource" :border="getBindValues.bordered" :stripe="getBindValues.striped" :row-key="getElementRowKey" :row-class-name="getElementRowClassName" :height="getElementTableHeight" :tree-props="getElementTreeProps" :default-expand-all="getBindValues.defaultExpandAllRows" :expand-row-keys="getElementExpandedRowKeys" :expand-on-click-row="!!getBindValues.expandRowByClick" :native-scrollbar="true" style="width: 100%" @selection-change="handleElementSelectionChange" @row-click="handleElementRowClick" @row-dblclick="handleElementRowDbClick" @row-contextmenu="handleElementRowContextmenu" @sort-change="handleElementSortChange" @expand-change="handleElementExpandChange">
 				<ElTableColumn v-if="getRowSelectionRef" type="selection" width="60" align="center" reserve-selection :fixed="getElementSelectionFixed" :selectable="getElementSelectable" />
 				<ElementTableColumn v-for="column in getElementColumns" :key="getElementColumnKey(column)" :column="column" :render-header="renderElementHeader" :render-cell="renderElementCell" />
 			</ElTable>
-			<ElPagination
-				v-if="getElementPagination"
-				:class="`${prefixCls}__pagination`"
-				:current-page="getElementPagination.current"
-				:page-size="getElementPagination.pageSize"
-				:page-sizes="getElementPagination.pageSizes"
-				:total="getElementPagination.total"
-				:layout="getElementPagination.layout"
-				:small="getElementPagination.small"
-				:disabled="getElementPagination.disabled"
-				background
-				@current-change="handleElementCurrentChange"
-				@size-change="handleElementSizeChange"
-			/>
+			<ElPagination v-if="getElementPagination" :class="`${prefixCls}__pagination`" :current-page="getElementPagination.current" :page-size="getElementPagination.pageSize" :page-sizes="getElementPagination.pageSizes" :total="getElementPagination.total" :layout="getElementPagination.layout" :small="getElementPagination.small" :disabled="getElementPagination.disabled" background @current-change="handleElementCurrentChange" @size-change="handleElementSizeChange" />
 		</div>
 	</div>
 </template>
@@ -80,7 +46,7 @@ import { debounce, get, omit } from 'lodash-es'
 import { useElementSize } from '@vueuse/core'
 import { basicProps } from './props'
 import { isBoolean, isFunction } from '@/utils/core/ObjectUtil'
-import { PAGE_SIZE, ROW_KEY } from './const'
+import { ACTION_COLUMN_FLAG, INDEX_COLUMN_FLAG, PAGE_SIZE, ROW_KEY } from './const'
 
 defineOptions({ name: 'BasicTable' })
 
@@ -275,6 +241,18 @@ const getElementDataSource = computed(() => unref(getDataSourceRef) || [])
 
 const getElementColumns = computed(() => toRaw(unref(getViewColumns)) || [])
 
+const getElementAutoFlexColumnKey = computed(() => {
+	const columns = unref(getElementColumns)
+	if (unref(getScrollRef)?.x !== '100%' || columns.some((column) => !column.width || column.minWidth)) return null
+
+	const flexColumn = columns.find((column) => {
+		const fixed = column.fixed === true ? 'left' : column.fixed
+		return !fixed && ![ACTION_COLUMN_FLAG, INDEX_COLUMN_FLAG].includes(column.flag) && !column.children?.length
+	})
+
+	return flexColumn ? getElementColumnKey(flexColumn) : null
+})
+
 const getElementTreeProps = computed(() => {
 	const { childrenColumnName = 'children' } = unref(getProps)
 	return { children: childrenColumnName }
@@ -290,12 +268,33 @@ const getElementRowKey = computed(() => {
 function updateElementHeaderHeight() {
 	nextTick(() => {
 		const tableEl = unref(tableElRef)?.$el
+		updateElementScrollbarGutter(tableEl)
 		const headEl = tableEl?.querySelector('.el-table__header-wrapper')
 		const headerHeight = headEl?.offsetHeight
 		if (headerHeight) {
 			elementHeaderHeightRef.value = headerHeight
 		}
 	})
+}
+
+function updateElementScrollbarGutter(tableEl) {
+	const scrollWrap = tableEl?.querySelector('.el-table__body-wrapper .el-scrollbar__wrap')
+	if (!scrollWrap) return
+
+	const gutterX = scrollWrap.offsetWidth - scrollWrap.clientWidth
+	const gutterY = scrollWrap.offsetHeight - scrollWrap.clientHeight
+	const gutter = Math.max(gutterX, gutterY, 0)
+	if (!gutter) return
+
+	const gutterValue = `${gutter}px`
+	const wrapEl = unref(wrapRef)
+	wrapEl?.style.setProperty('--nn-scrollbar-size', gutterValue)
+	wrapEl?.style.setProperty('--nn-scrollbar-gutter', gutterValue)
+
+	if (typeof document !== 'undefined') {
+		document.documentElement.style.setProperty('--nn-measured-scrollbar-size', gutterValue)
+		document.documentElement.style.setProperty('--nn-measured-scrollbar-gutter', gutterValue)
+	}
 }
 
 const getElementTableHeight = computed(() => {
@@ -345,13 +344,14 @@ function getElementColumnProp(column) {
 function getElementColumnProps(column) {
 	const prop = getElementColumnProp(column)
 	const fixed = column.fixed === true ? 'left' : column.fixed
+	const isAutoFlexColumn = getElementColumnKey(column) === unref(getElementAutoFlexColumnKey)
 	return {
 		// 兼容原 columns 的 dataIndex/fixed/sorter/ellipsis，并映射到 Element Plus 字段。
 		prop,
 		label: typeof column.title === 'string' ? column.title : '',
 		columnKey: column.key || prop,
-		width: column.width,
-		minWidth: column.minWidth || (!column.width ? 150 : undefined),
+		width: isAutoFlexColumn ? undefined : column.width,
+		minWidth: column.minWidth || (isAutoFlexColumn ? column.width || 150 : !column.width ? 150 : undefined),
 		fixed,
 		align: column.align || 'center',
 		headerAlign: column.align || 'center',
@@ -493,9 +493,7 @@ function handleElementSelectionChange(selection) {
 
 function isSelectionEvent(event) {
 	// 点到复选框本身时不再触发行点击选中，避免一次点击被切换两次。
-	return event
-		?.composedPath?.()
-		?.some((item) => item?.classList?.contains?.('el-checkbox') || item?.classList?.contains?.('el-table-column--selection'))
+	return event?.composedPath?.()?.some((item) => item?.classList?.contains?.('el-checkbox') || item?.classList?.contains?.('el-table-column--selection'))
 }
 
 function handleElementRowClick(record, column, event) {
@@ -648,8 +646,8 @@ defineExpose({ tableElRef, ...tableAction })
 	--nn-table-header-bg: #f8f8f9;
 	--nn-table-row-hover-bg: #f5f7fa;
 	--nn-border: @border-color-base;
-	--nn-scrollbar-size: 14px;
-	--nn-scrollbar-gutter: 14px;
+	--nn-scrollbar-size: var(--nn-measured-scrollbar-size, 16px);
+	--nn-scrollbar-gutter: var(--nn-measured-scrollbar-gutter, var(--nn-scrollbar-size));
 	--nn-scrollbar-thumb: #c1c1c1;
 	--nn-scrollbar-thumb-hover: #a8a8a8;
 	--nn-scrollbar-track: #f1f1f1;
@@ -667,27 +665,27 @@ defineExpose({ tableElRef, ...tableAction })
 		padding: 16px;
 
 		.ant-form {
-      padding: 16px 18px;
-      margin: 10px 0;
-      background: var(--nn-bg-elevated);
-      border: 1px solid var(--nn-border);
-      border-radius: 10px;
-      -webkit-box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-      position: relative;
+			padding: 16px 18px;
+			margin: 10px 0;
+			background: var(--nn-bg-elevated);
+			border: 1px solid var(--nn-border);
+			border-radius: 10px;
+			-webkit-box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+			box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+			position: relative;
 		}
 	}
 
 	&__table-wrapper {
 		padding: 15px 25px;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    background-color: var(--nn-bg-elevated, #ffffff);
-    border: 1px solid var(--nn-border, #ebeef5);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-    overflow: hidden;
+		-webkit-box-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+		background-color: var(--nn-bg-elevated, #ffffff);
+		border: 1px solid var(--nn-border, #ebeef5);
+		border-radius: 10px;
+		box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+		overflow: hidden;
 	}
 
 	&__header {
@@ -714,6 +712,19 @@ defineExpose({ tableElRef, ...tableAction })
 		--el-table-fixed-right-column: inset -1px 0 0 0 var(--nn-border);
 		color: @text-color-base;
 		background-color: var(--nn-bg-elevated);
+	}
+
+	.el-table__header-wrapper,
+	.el-table__header-wrapper table,
+	.el-table__header-wrapper .el-table__header,
+	.el-table__header-wrapper thead,
+	.el-table__header-wrapper tr,
+	.el-table__fixed-header-wrapper,
+	.el-table__fixed-header-wrapper table,
+	.el-table__fixed-header-wrapper .el-table__header,
+	.el-table__fixed-header-wrapper thead,
+	.el-table__fixed-header-wrapper tr {
+		background-color: var(--nn-table-header-bg) !important;
 	}
 
 	.el-table__header-wrapper th.el-table__cell,
@@ -791,8 +802,6 @@ defineExpose({ tableElRef, ...tableAction })
 		display: none !important;
 	}
 
-	.el-table .el-table-fixed-column--left,
-	.el-table .el-table-fixed-column--right,
 	.el-table__body-wrapper,
 	.el-table__fixed-body-wrapper {
 		background-color: var(--nn-bg-elevated) !important;
@@ -804,19 +813,46 @@ defineExpose({ tableElRef, ...tableAction })
 		background-color: var(--nn-table-header-bg) !important;
 	}
 
+	.el-table--scrollable-x .el-table-fixed-column--left.is-last-column.el-table__cell {
+		border-right: 1px solid var(--nn-border) !important;
+	}
+
+	.el-table--scrollable-x .el-table-fixed-column--left.is-last-column::before {
+		box-shadow: none !important;
+	}
+
 	.el-table--scrollable-y .el-table__header-wrapper {
+		padding-right: var(--nn-scrollbar-gutter, 16px) !important;
+		box-sizing: border-box !important;
 		background-color: var(--nn-table-header-bg) !important;
 	}
 
-  // 当表格开启纵向滚动时，手动补偿表头右侧空白，使表头与表体对齐
-  .el-table--scrollable-y {
-    .el-table__header-wrapper {
-      padding-right: var(--nn-scrollbar-gutter, 14px) !important;
-      box-sizing: border-box;
-      background-color: #f8f8f9 !important;
-      background-clip: border-box !important;
-    }
-  }
+	.el-table__header-wrapper tr th.el-table__fixed-right-patch,
+	.el-table__header-wrapper tr td.el-table__fixed-right-patch,
+	.el-table__header-wrapper th.gutter {
+		background-color: var(--nn-table-header-bg, #f8f8f9) !important;
+	}
+
+	.el-table--scrollable-y th.gutter,
+	.el-table--scrollable-y col[name='gutter'] {
+		width: var(--nn-scrollbar-gutter) !important;
+	}
+
+	.el-table--scrollable-y td.gutter {
+		background-color: var(--nn-bg-elevated) !important;
+		border-color: var(--nn-border) !important;
+	}
+
+	.el-table--scrollable-y .el-table__fixed-right-patch {
+		width: var(--nn-scrollbar-gutter) !important;
+		height: var(--nn-table-header-height) !important;
+		background-color: var(--nn-table-header-bg, #f8f8f9) !important;
+		border-color: var(--nn-border) !important;
+	}
+
+	.el-table--scrollable-y .el-table__header-wrapper tr th.el-table-fixed-column--right.is-first-column {
+		box-shadow: var(--nn-scrollbar-gutter) 0 0 0 var(--nn-table-header-bg) !important;
+	}
 
 	&__pagination {
 		// 分页改用 Element Plus，但外观仍贴近原表格底部分页区域。
