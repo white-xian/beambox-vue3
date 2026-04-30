@@ -98,7 +98,7 @@
     },
     isTreeTable: true,
     pagination: false,
-    canResize: false,
+    canResize: true,
     showTableSetting: true,
     tableSetting: {
       fullScreen: true,
