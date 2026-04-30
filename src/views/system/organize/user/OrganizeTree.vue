@@ -41,3 +41,17 @@
     fetch();
   });
 </script>
+
+<style scoped lang="less">
+  .scroll-wrap {
+    padding: 20px 8px;
+    margin-top:25px;
+    background: @component-background;
+    border: 1px solid @border-color-base;
+    border-radius: 10px;
+    -webkit-box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    position: relative;
+  }
+
+</style>
