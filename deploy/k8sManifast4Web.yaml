@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    field.cattle.io/description: Beambox后台管理前端
+  name: beambox-vue3
+  namespace: beambox
+spec:
+  selector:
+    matchLabels:
+      app: beambox-vue3
+  replicas: 0
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        field.cattle.io/ports: '[]'
+      labels:
+        app: beambox-vue3
+    spec:
+      containers:
+      - image: harbor.beambox.app/prod/beambox-vue3:1
+        imagePullPolicy: Always
+        imagePullSecrets:
+          - name: harbor-secret
+        name: beambox-vue3
+      restartPolicy: Always
