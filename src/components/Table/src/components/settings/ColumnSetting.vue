@@ -598,7 +598,7 @@
     watch([getColumns, getValues], () => {
       if (!isInnerChange) {
         isRestored = false;
-        console.log('onMounted isRestored');
+        // console.log('onMounted isRestored');
         init();
       } else {
         isInnerChange = false;

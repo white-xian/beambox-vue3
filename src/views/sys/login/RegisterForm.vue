@@ -89,7 +89,7 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.REGISTER)
 async function handleRegister() {
 	const data = await validForm()
 	if (!data) return
-	console.log(data)
+	// console.log(data)
 }
 
 function handleSendCode() {
