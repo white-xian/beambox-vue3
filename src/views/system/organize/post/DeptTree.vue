@@ -41,7 +41,7 @@
 <style scoped lang="less">
   .scroll-wrap {
     padding: 20px 8px;
-    margin-top:25px;
+    margin-top:26px;
     background: @component-background;
     border: 1px solid @border-color-base;
     border-radius: 10px;
