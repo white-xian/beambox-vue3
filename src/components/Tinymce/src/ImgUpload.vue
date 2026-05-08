@@ -50,9 +50,8 @@
   function handleChange(info: Record<string, any>) {
     const file = info.file;
     const status = file?.status;
-    const url = file?.response?.url;
+    const url = file?.response?.data?.fileUrl;
     const name = file?.name;
-
     if (status === 'uploading') {
       if (!uploading) {
         emit('uploading', name);
