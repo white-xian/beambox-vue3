@@ -1,10 +1,12 @@
 <template>
 	<div>
 		<BasicTable @register="registerTable">
+			<!-- 顶部工具栏：新增 OTA 主版本和批量删除草稿版本 -->
 			<template #toolbar>
 				<a-button :preIcon="IconEnum.ADD" v-auth="AiPetFirmwareAuth.ADD" type="primary" @click="handleCreate"> 新增 </a-button>
 				<a-button :preIcon="IconEnum.DELETE" v-auth="AiPetFirmwareAuth.Delete" type="primary" color="error" @click="handleDelete()"> 删除 </a-button>
 			</template>
+			<!-- 行操作：按状态控制查看、更新、发布和删除入口 -->
 			<template #action="{ record }">
 				<TableAction
 					:actions="[
@@ -63,6 +65,7 @@ const { createConfirm, createMessage } = useMessage()
 const [firmwareRegisterModal, { openModal: openFirmwareModal }] = useModal()
 const [detailRegisterDrawer, { openDrawer: openDetailDrawer }] = useDrawer()
 
+/** 缓存表格勾选结果，供批量删除使用 */
 const state = reactive<{
 	ids: string[]
 	idNames: string
@@ -73,6 +76,7 @@ const state = reactive<{
 	records: [],
 })
 
+/** AI 宠物固件 OTA 列表表格配置 */
 const [registerTable, { reload }] = useTable({
 	title: 'AI 宠物固件 OTA 列表',
 	api: listAiPetFirmwareApi,
@@ -104,6 +108,7 @@ const [registerTable, { reload }] = useTable({
 		slots: { customRender: 'action' },
 	},
 	rowSelection: {
+		/** 同步已选主版本 ID、名称和完整记录 */
 		onChange: (selectedRowKeys, selectRows) => {
 			const records = selectRows as AiPetFirmwareIM[]
 			state.ids = selectedRowKeys as string[]
@@ -113,20 +118,24 @@ const [registerTable, { reload }] = useTable({
 	},
 })
 
+/** 仅草稿状态允许更新、发布和删除 */
 function isDraft(record: AiPetFirmwareIM) {
 	return record.status !== AiPetFirmwareStatusEnum.RELEASED
 }
 
+/** 打开详情抽屉 */
 function handleView(record: AiPetFirmwareIM) {
 	openDetailDrawer(true, { record })
 }
 
+/** 打开新增弹窗 */
 function handleCreate() {
 	openFirmwareModal(true, {
 		isUpdate: false,
 	})
 }
 
+/** 打开更新弹窗，并传入当前主版本记录 */
 function handleEdit(record: AiPetFirmwareIM) {
 	openFirmwareModal(true, {
 		record,
@@ -134,6 +143,7 @@ function handleEdit(record: AiPetFirmwareIM) {
 	})
 }
 
+/** 发布草稿版本，发布成功后刷新列表 */
 function handleRelease(record: AiPetFirmwareIM) {
 	createConfirm({
 		iconType: 'warning',
@@ -147,6 +157,7 @@ function handleRelease(record: AiPetFirmwareIM) {
 	})
 }
 
+/** 删除单条或批量删除草稿版本 */
 function handleDelete(record?: AiPetFirmwareIM) {
 	const records = record?.id ? [record] : state.records
 	if (records.length === 0) {
@@ -174,6 +185,7 @@ function handleDelete(record?: AiPetFirmwareIM) {
 	})
 }
 
+/** 子弹窗/抽屉操作成功后刷新主列表 */
 function handleSuccess() {
 	reload()
 }

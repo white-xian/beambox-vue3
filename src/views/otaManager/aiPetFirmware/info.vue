@@ -3,6 +3,7 @@
 <template>
 	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="420" :canFullscreen="false" :maskClosable="false" wrapClassName="ai-pet-firmware-modal" @ok="handleSubmit">
 		<div class="dialog-content">
+			<!-- 主版本基础信息表单 -->
 			<el-form ref="formRef" :model="formModel" :rules="rules" label-width="96px">
 				<el-row :gutter="16" class="basic-info-row">
 					<el-col :xs="24" :md="12">
@@ -37,13 +38,16 @@
 
 				<el-divider content-position="left">附属包配置</el-divider>
 
+				<!-- 附属包操作栏：用于新增模块固件包 -->
 				<div class="package-toolbar">
 					<span class="package-toolbar__tip"> 支持配置多个模块的固件附属包，附属包项可按需新增。 </span>
 					<el-button type="primary" plain size="small" @click="addPackage"> 添加附属包 </el-button>
 				</div>
 
+				<!-- 空状态提示，避免用户误以为附属包区域未加载 -->
 				<div v-if="!formModel.packages.length" class="package-empty">暂无附属包配置，点击右上角"添加附属包"开始添加。</div>
 
+				<!-- 附属包表单卡片：每个卡片对应一个模块固件文件 -->
 				<div v-for="(record, index) in formModel.packages" :key="record.localKey" class="package-card">
 					<div class="package-card__header">
 						<span>附属包 {{ index + 1 }}</span>
@@ -100,12 +104,14 @@ import { addAiPetFirmwareApi, updateAiPetFirmwareApi } from '@/api/ota/aiPetFirm
 import { AiPetFirmwareIM, AiPetFirmwarePackageIM, AiPetFirmwareStatusEnum } from '@/model/ota'
 import type { FormInstance, FormRules } from 'element-plus'
 
+/** 前端表单使用的附属包项，比接口模型多本地 key 和上传状态 */
 type PackageFormItem = AiPetFirmwarePackageIM & {
 	localKey: string
 	uploading?: boolean
 	uploadPercent?: number
 }
 
+/** AI 宠物固件 OTA 新增/更新表单模型 */
 interface FirmwareFormModel {
 	id?: string
 	versionCode?: number
@@ -121,6 +127,7 @@ const isUpdate = ref(false)
 const formRef = ref<FormInstance | null>(null)
 let packageIndex = 0
 
+/** 常用模块编码与模块名称映射，用于输入编码后自动补全名称 */
 const moduleNameMap: Record<string, string> = {
 	MAIN: '主控固件',
 	MCU: 'MCU 固件',
@@ -128,6 +135,7 @@ const moduleNameMap: Record<string, string> = {
 	RESOURCE: '资源包',
 }
 
+/** 弹窗表单数据 */
 const formModel = reactive<FirmwareFormModel>({
 	versionCode: undefined,
 	versionName: '',
@@ -136,12 +144,14 @@ const formModel = reactive<FirmwareFormModel>({
 	packages: [],
 })
 
+/** 主版本基础字段校验规则 */
 const rules: FormRules = {
 	versionCode: [{ required: true, message: '请输入主版本号', trigger: 'change' }],
 	versionName: [{ required: true, message: '请输入主版本名称', trigger: 'blur' }],
 	description: [{ required: true, message: '请输入升级说明', trigger: 'blur' }],
 }
 
+/** 打开弹窗时根据新增/更新模式初始化表单 */
 const [registerModal, { setModalProps, closeModal }] = useModalInner((data) => {
 	resetForm()
 	setModalProps({ loading: true, confirmLoading: false })
@@ -169,13 +179,16 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner((data) => {
 	setModalProps({ loading: false })
 })
 
+/** 根据弹窗模式展示标题 */
 const getTitle = computed(() => (unref(isUpdate) ? '更新 AI 宠物固件 OTA' : '新增 AI 宠物固件 OTA'))
 
+/** 生成本地唯一 key，保证附属包表单项渲染稳定 */
 function createLocalKey() {
 	packageIndex += 1
 	return `package_${Date.now()}_${packageIndex}`
 }
 
+/** 创建一个空的附属包表单项 */
 function createPackage(): PackageFormItem {
 	return {
 		localKey: createLocalKey(),
@@ -189,6 +202,7 @@ function createPackage(): PackageFormItem {
 	}
 }
 
+/** 重置弹窗表单到新增默认状态 */
 function resetForm() {
 	formModel.id = undefined
 	formModel.versionCode = undefined
@@ -198,16 +212,19 @@ function resetForm() {
 	formModel.packages = []
 }
 
+/** 添加一个附属包，并清理旧校验状态 */
 function addPackage() {
 	formModel.packages.push(createPackage())
 	nextTick(() => formRef.value?.clearValidate())
 }
 
+/** 删除指定附属包，并清理旧校验状态 */
 function removePackage(index: number) {
 	formModel.packages.splice(index, 1)
 	nextTick(() => formRef.value?.clearValidate())
 }
 
+/** 规范化模块编码，并在命中常用编码时自动填充模块名称 */
 function normalizeModuleCode(record: PackageFormItem) {
 	const moduleCode = record.moduleCode?.trim().toUpperCase()
 	record.moduleCode = moduleCode
@@ -216,10 +233,12 @@ function normalizeModuleCode(record: PackageFormItem) {
 	}
 }
 
+/** 统一把任意值整理成去空格字符串 */
 function normalizeText(value: unknown) {
 	return String(value ?? '').trim()
 }
 
+/** 获取上传按钮悬浮提示文案 */
 function getPackageFileTip(record: PackageFormItem) {
 	if (record.uploading) {
 		return `上传中 ${record.uploadPercent || 0}%`
@@ -227,6 +246,7 @@ function getPackageFileTip(record: PackageFormItem) {
 	return record.fileName || '点击上传固件文件'
 }
 
+/** 从上传接口返回中按候选字段取值，兼容不同后端字段名 */
 function pickUploadValue(data: Recordable, keys: string[]) {
 	for (const key of keys) {
 		const value = data?.[key]
@@ -237,6 +257,7 @@ function pickUploadValue(data: Recordable, keys: string[]) {
 	return undefined
 }
 
+/** 归一化上传接口返回，提取文件名、地址和大小 */
 function normalizeUploadResult(response: Recordable, file: File) {
 	const responseData = response?.data || response || {}
 	const data = responseData?.data || responseData
@@ -251,6 +272,7 @@ function normalizeUploadResult(response: Recordable, file: File) {
 	}
 }
 
+/** 上传附属包文件，并把上传结果写回当前附属包表单项 */
 async function handlePackageUpload(options: Recordable, record: PackageFormItem) {
 	const file = options.file as File
 	record.uploading = true
@@ -285,6 +307,7 @@ async function handlePackageUpload(options: Recordable, record: PackageFormItem)
 	}
 }
 
+/** 构造后端新增/更新接口需要的 payload */
 function buildPayload(): AiPetFirmwareIM {
 	return {
 		id: formModel.id,
@@ -307,6 +330,7 @@ function buildPayload(): AiPetFirmwareIM {
 	}
 }
 
+/** 提交新增或更新表单 */
 async function handleSubmit() {
 	if (!formRef.value) return
 

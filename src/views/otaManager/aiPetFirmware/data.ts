@@ -5,20 +5,24 @@ import { FormSchema } from '@/components/Form'
 import { BasicColumn } from '@/components/Table'
 import { AiPetFirmwareIM, AiPetFirmwareStatusEnum } from '@/model/ota'
 
+/** 固件状态下拉选项，供列表筛选和表单展示复用 */
 export const firmwareStatusOptions = [
 	{ label: '草稿', value: AiPetFirmwareStatusEnum.DRAFT },
 	{ label: '已发布', value: AiPetFirmwareStatusEnum.RELEASED },
 ]
 
+/** 将固件状态枚举转换成中文文案 */
 export function formatFirmwareStatus(status?: AiPetFirmwareStatusEnum) {
 	return status === AiPetFirmwareStatusEnum.RELEASED ? '已发布' : '草稿'
 }
 
+/** 渲染列表/详情中的固件状态标签 */
 export function renderFirmwareStatus(status?: AiPetFirmwareStatusEnum) {
 	const released = status === AiPetFirmwareStatusEnum.RELEASED
 	return h(Tag, { color: released ? 'green' : 'orange' }, () => (released ? '已发布' : '草稿'))
 }
 
+/** 格式化文件大小，兼容后端返回字符串或数字 */
 export function formatFileSize(value?: string | number) {
 	if (value === undefined || value === null || value === '') {
 		return '-'
@@ -44,6 +48,7 @@ export function formatFileSize(value?: string | number) {
 	return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`
 }
 
+/** AI 宠物固件 OTA 列表列配置 */
 export const columns: BasicColumn[] = [
 	{
 		title: '主版本号',
@@ -64,6 +69,7 @@ export const columns: BasicColumn[] = [
 		title: '附属包数量',
 		dataIndex: 'packages',
 		width: 120,
+		/** 根据附属包数组实时展示数量，避免额外字段依赖 */
 		customRender: ({ record }) => {
 			const data = record as AiPetFirmwareIM
 			return data.packages?.length || 0
@@ -73,6 +79,7 @@ export const columns: BasicColumn[] = [
 		title: '状态',
 		dataIndex: 'status',
 		width: 120,
+		/** 状态列统一用彩色标签呈现 */
 		customRender: ({ record }) => {
 			const data = record as AiPetFirmwareIM
 			return renderFirmwareStatus(data.status)
@@ -90,6 +97,7 @@ export const columns: BasicColumn[] = [
 	},
 ]
 
+/** AI 宠物固件 OTA 列表搜索表单配置 */
 export const searchFormSchema: FormSchema[] = [
 	{
 		label: '主版本名称',
@@ -116,6 +124,7 @@ export const searchFormSchema: FormSchema[] = [
 	},
 ]
 
+/** AI 宠物固件 OTA 详情描述项配置 */
 export const detailSchema: DescItem[] = [
 	{
 		label: '主版本号',
