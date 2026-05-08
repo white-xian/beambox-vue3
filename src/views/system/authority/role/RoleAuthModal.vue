@@ -9,21 +9,23 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, unref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useMessage } from '@/hooks/web/useMessage'
 import { BasicModal, useModalInner } from '@/components/Modal'
 import { BasicTree } from '@/components/Tree'
 import { BasicForm, useForm } from '@/components/Form'
 import { editAuthScopeApi, getAuthRoleApi } from '@/api/system/authority/role.api'
-import { authScopeEnterpriseApi } from '@/api/system/authority/auth.api'
+import { authScopeCommonApi, authScopeEnterpriseApi } from '@/api/system/authority/auth.api'
 import { authFormSchema } from './role.data'
 import { concat, difference, intersection } from 'lodash-es'
 import { getTreeNodes } from '@/utils/core/treeUtil'
+import { useUserStore } from '@/store/modules/user'
 // import { RoleIM } from '@/model/system/authority'
 
 const emit = defineEmits(['success', 'register'])
 
 const { createMessage } = useMessage()
+const userStore = useUserStore()
 const authTree = ref([])
 const state = reactive({
 	treeLastLeaf: [],
@@ -44,11 +46,9 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 	setModalProps({ confirmLoading: false })
 	const role = await getAuthRoleApi(data.record.id)
 
-	if (unref(authTree).length === 0) {
-		authTree.value = await authScopeEnterpriseApi()
-		state.treeLastLeaf = getTreeNodes(authTree.value, 'id', 'children')
-		state.moduleLeafs = authTree.value.map((item) => item.id)
-	}
+	authTree.value = userStore.isLessor ? await authScopeCommonApi() : await authScopeEnterpriseApi()
+	state.treeLastLeaf = getTreeNodes(authTree.value, 'id', 'children')
+	state.moduleLeafs = authTree.value.map((item) => item.id)
 
 	// 初始化权限树回显
 	role.authIds = concat(intersection(role.moduleIds, state.treeLastLeaf), intersection(role.menuIds, state.treeLastLeaf))

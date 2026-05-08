@@ -36,13 +36,14 @@ import { BasicModal, useModalInner } from '@/components/Modal'
 import { BasicForm, useForm } from '@/components/Form'
 import { BasicTree } from '@/components/Tree'
 import { addRoleApi } from '@/api/system/authority/role.api'
-import { authScopeEnterpriseApi } from '@/api/system/authority/auth.api'
+import { authScopeCommonApi, authScopeEnterpriseApi } from '@/api/system/authority/auth.api'
 import { organizeScopeApi } from '@/api/system/organize/organize.api'
 import { sourceAssign } from '@/utils/xueyi'
 import { getTreeNodes } from '@/utils/core/treeUtil'
 import { concat, difference, intersection } from 'lodash-es'
 import { DataScopeEnum } from '@/enums/system/authority'
 import { Steps } from 'ant-design-vue'
+import { useUserStore } from '@/store/modules/user'
 
 const ASteps = Steps
 const AStep = Steps.Step
@@ -50,6 +51,7 @@ const AStep = Steps.Step
 const emit = defineEmits(['success', 'register'])
 
 const { createMessage } = useMessage()
+const userStore = useUserStore()
 const current = ref(0)
 const authTree = ref([])
 const organizeTree = ref([])
@@ -90,11 +92,9 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async () =>
 	authReset()
 	Promise.all([roleResetFields(), authResetFields(), organizeResetFields()])
 	setModalProps({ confirmLoading: false })
-	if (unref(authTree).length === 0) {
-		authTree.value = await authScopeEnterpriseApi()
-		auth.treeLastLeaf = getTreeNodes(authTree.value, 'id', 'children')
-		auth.moduleLeafs = authTree.value.map((item) => item.id)
-	}
+	authTree.value = userStore.isLessor ? await authScopeCommonApi() : await authScopeEnterpriseApi()
+	auth.treeLastLeaf = getTreeNodes(authTree.value, 'id', 'children')
+	auth.moduleLeafs = authTree.value.map((item) => item.id)
 	if (unref(organizeTree).length === 0) {
 		const orgTree = await organizeScopeApi()
 		dataScope.treeLastLeaf = getOrgDeptIds(orgTree)
