@@ -2,8 +2,10 @@
 
 <template>
 	<BasicDrawer v-bind="$attrs" :title="getTitle" @register="registerDrawer" width="70%" showFooter :showOkBtn="false">
+		<!-- 主版本基础信息 -->
 		<Description @register="registerDescription" class="mt-4" />
 		<Divider orientation="left">附属包</Divider>
+		<!-- 附属包明细：图片直接预览，其他文件展示可点击链接 -->
 		<Table :columns="packageColumns" :data-source="packageData" :pagination="false" row-key="id" size="small" bordered>
 			<template #bodyCell="{ column, record }">
 				<template v-if="column.key === 'fileUrl'">
@@ -18,20 +20,6 @@
 				<span v-else-if="column.key === 'fileSize'">
 					{{ formatFileSize(record.fileSize) }}
 				</span>
-				<TableAction
-					v-else-if="column.key === 'action'"
-					outside
-					:actions="[
-						{
-							icon: IconEnum.DELETE,
-							tooltip: '删除',
-							color: 'error',
-							auth: AiPetFirmwareAuth.PACKAGESDEL,
-							ifShow: () => canEditPackages && !!record.id,
-							onClick: handleDeletePackage.bind(null, record as any),
-						},
-					]"
-				/>
 			</template>
 		</Table>
 	</BasicDrawer>
@@ -43,17 +31,14 @@ import { Divider, Image, Table } from 'ant-design-vue'
 import { FileOutlined } from '@ant-design/icons-vue'
 import { Description, useDescription } from '@/components/Description'
 import { BasicDrawer, useDrawerInner } from '@/components/Drawer'
-import { TableAction } from '@/components/Table'
-import { DescItemSizeEnum, IconEnum } from '@/enums'
-import { useMessage } from '@/hooks/web/useMessage'
-import { deleteAiPetFirmwarePackageApi, getAiPetFirmwareDetailApi } from '@/api/ota/aiPetFirmware.api'
-import { AiPetFirmwareIM, AiPetFirmwarePackageIM, AiPetFirmwareStatusEnum } from '@/model/ota'
-import { AiPetFirmwareAuth } from '@/auth/ota'
+import { DescItemSizeEnum } from '@/enums'
+import { getAiPetFirmwareDetailApi } from '@/api/ota/aiPetFirmware.api'
+import { AiPetFirmwareIM } from '@/model/ota'
 import { detailSchema, formatFileSize } from './data'
 
-const emit = defineEmits(['success', 'register'])
-const { createConfirm, createMessage } = useMessage()
 const getTitle = ref('AI 宠物固件 OTA 详情')
+
+/** 当前详情抽屉展示的主版本记录 */
 const currentRecord = ref<AiPetFirmwareIM>({
 	versionCode: 0,
 	versionName: '',
@@ -61,8 +46,10 @@ const currentRecord = ref<AiPetFirmwareIM>({
 	packages: [],
 })
 
+/** 附属包表格数据，统一从当前记录派生 */
 const packageData = computed(() => currentRecord.value.packages || [])
 
+/** 附属包表格列配置 */
 const packageColumns: any[] = [
 	{ title: '模块编码', dataIndex: 'moduleCode', key: 'moduleCode', width: 140 },
 	{ title: '模块名称', dataIndex: 'moduleName', key: 'moduleName', width: 160 },
@@ -70,15 +57,16 @@ const packageColumns: any[] = [
 	{ title: '文件地址', dataIndex: 'fileUrl', key: 'fileUrl', width: 150 },
 	{ title: '文件大小', dataIndex: 'fileSize', key: 'fileSize', width: 140 },
 	{ title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
-	{ title: '操作', dataIndex: 'action', key: 'action', width: 90 },
 ]
 
+/** 主版本基础信息描述组件配置 */
 const [registerDescription, { setDescProps }] = useDescription({
 	title: 'AI 宠物固件 OTA 详情',
 	schema: detailSchema,
 	column: DescItemSizeEnum.DEFAULT,
 })
 
+/** 打开抽屉时先展示列表记录，再按 ID 补拉附属包详情 */
 const [registerDrawer, { setDrawerProps }] = useDrawerInner((data) => {
 	setDrawerProps({ loading: true, confirmLoading: false })
 	const record = data.record as AiPetFirmwareIM
@@ -92,6 +80,7 @@ const [registerDrawer, { setDrawerProps }] = useDrawerInner((data) => {
 	}
 })
 
+/** 查询指定主版本的附属包详情 */
 async function fetchPackages(versionId: string) {
 	try {
 		const packages = await getAiPetFirmwareDetailApi(versionId)
@@ -104,8 +93,6 @@ async function fetchPackages(versionId: string) {
 		setDrawerProps({ loading: false })
 	}
 }
-
-const canEditPackages = computed(() => currentRecord.value.status !== AiPetFirmwareStatusEnum.RELEASED)
 
 /** 图片扩展名列表 */
 const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff', 'tif']
@@ -130,6 +117,7 @@ function getFileNameFromUrl(url: string): string {
 	return last.split('?')[0] || last
 }
 
+/** 同步当前抽屉记录，并刷新详情描述组件数据 */
 function setRecord(record: AiPetFirmwareIM) {
 	currentRecord.value = {
 		versionCode: record.versionCode,
@@ -143,26 +131,6 @@ function setRecord(record: AiPetFirmwareIM) {
 	}
 	setDescProps({ data: currentRecord.value })
 	getTitle.value = `AI 宠物固件 OTA 详情:${record.versionName}`
-}
-
-function handleDeletePackage(record: AiPetFirmwarePackageIM) {
-	if (!record.id) {
-		createMessage.warning('缺少附属包 ID')
-		return
-	}
-
-	createConfirm({
-		iconType: 'warning',
-		title: '提示',
-		content: `是否确定删除附属包 ${record.fileName}?`,
-		onOk: async () => {
-			await deleteAiPetFirmwarePackageApi(record.id as string)
-			currentRecord.value.packages = currentRecord.value.packages.filter((item) => item.id !== record.id)
-			setDescProps({ data: currentRecord.value })
-			createMessage.success(`删除附属包 ${record.fileName} 成功`)
-			emit('success')
-		},
-	})
 }
 </script>
 

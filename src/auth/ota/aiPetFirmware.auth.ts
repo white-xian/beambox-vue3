@@ -1,4 +1,4 @@
-/** AI宠物固件类型权限标识 */
+/** AI 宠物固件 OTA 功能权限标识 */
 export enum AiPetFirmwareAuth {
   /** OTA管理 | AI宠物固件管理 | 列表 */
   List = 'FE:ota:aiPetFirmware:list',
