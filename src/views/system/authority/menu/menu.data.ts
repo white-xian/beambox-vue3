@@ -35,6 +35,70 @@ export const isMenu = (menuType: string) => menuType == MenuTypeEnum.MENU
 export const isDetails = (menuType: string) => menuType == MenuTypeEnum.DETAILS
 export const isButton = (menuType: string) => menuType == MenuTypeEnum.BUTTON
 
+const parentMenuTypeLimitMap: Record<string, MenuTypeEnum> = {
+	[MenuTypeEnum.DIR]: MenuTypeEnum.DIR,
+	[MenuTypeEnum.MENU]: MenuTypeEnum.MENU,
+	[MenuTypeEnum.DETAILS]: MenuTypeEnum.DETAILS,
+	[MenuTypeEnum.BUTTON]: MenuTypeEnum.DETAILS,
+}
+
+let parentMenuTreeRequestId = 0
+
+function getParentMenuTypeLimit(menuType?: string, menuId?: string) {
+	if (!menuId) {
+		return MenuTypeEnum.DETAILS
+	}
+	return parentMenuTypeLimitMap[menuType || MenuTypeEnum.DIR] || MenuTypeEnum.DIR
+}
+
+function searchTree(nodes: MenuIM[] = [], searchKey?: string) {
+	for (const node of nodes) {
+		if (node.id === searchKey) {
+			return node.id
+		}
+		if (node.children && node.children.length > 0) {
+			const res = searchTree(node.children, searchKey)
+			if (res) {
+				return res
+			}
+		}
+	}
+	return undefined
+}
+
+function filterParentTree(nodes: MenuIM[] = []) {
+	return nodes
+		.filter((node) => node.menuType !== MenuTypeEnum.BUTTON)
+		.map((node) => ({
+			...node,
+			children: node.children ? filterParentTree(node.children) : node.children,
+		}))
+}
+
+async function refreshParentMenuTree(formModel: Partial<MenuIM>, formActionType: any, moduleId?: SelectValue) {
+	const requestId = ++parentMenuTreeRequestId
+	const treeData =
+		moduleId === undefined
+			? []
+			: filterParentTree(
+					await getMenuRouteListApi({
+						id: formModel.id,
+						moduleId: moduleId as string,
+						menuTypeLimit: getParentMenuTypeLimit(formModel.menuType, formModel.id),
+						exNodes: formModel.id !== undefined,
+						defaultNode: true,
+					}),
+				)
+	if (requestId !== parentMenuTreeRequestId) {
+		return
+	}
+	formModel.parentId = searchTree(treeData, formModel.parentId)
+	formActionType?.updateSchema({
+		field: 'parentId',
+		componentProps: { treeData },
+	})
+}
+
 /** 页面类型校验 */
 export const isNormalMenu = (menuType: string, frameType: string) => isMenu(menuType) && frameType == FrameTypeEnum.NORMAL
 export const isEmbeddedMenu = (menuType: string, frameType: string) => isMenu(menuType) && frameType == FrameTypeEnum.EMBEDDED
@@ -246,40 +310,7 @@ export const formSchema: FormSchema[] = [
 				labelField: 'name',
 				valueField: 'id',
 				onChange: (e: SelectValue) => {
-					function searchTree(nodes, searchKey) {
-						for (let _i = 0; _i < nodes.length; _i++) {
-							if (nodes[_i].id === searchKey) {
-								return nodes[_i].id
-							} else {
-								if (nodes[_i].children && nodes[_i].children.length > 0) {
-									const res = searchTree(nodes[_i].children, searchKey)
-									if (res) {
-										return res
-									}
-								}
-							}
-						}
-						return undefined
-					}
-
-					;(async () => {
-						const treeData =
-							e === undefined
-								? []
-								: await getMenuRouteListApi({
-										id: formModel.id,
-										moduleId: e as string,
-										menuTypeLimit: MenuTypeEnum.DETAILS,
-										exNodes: formModel.id !== undefined,
-										defaultNode: true,
-									})
-						formModel.parentId = searchTree(treeData, formModel.parentId)
-						const { updateSchema } = formActionType
-						updateSchema({
-							field: 'parentId',
-							componentProps: { treeData },
-						})
-					})()
+					refreshParentMenuTree(formModel, formActionType, e)
 				},
 			}
 		},
@@ -367,8 +398,13 @@ export const formSchema: FormSchema[] = [
 		field: 'menuType',
 		component: 'RadioButtonGroup',
 		defaultValue: MenuTypeEnum.DIR,
-		componentProps: {
-			options: dict.DicAuthMenuTypeOptions,
+		componentProps: ({ formModel, formActionType }) => {
+			return {
+				options: dict.DicAuthMenuTypeOptions,
+				onChange: () => {
+					refreshParentMenuTree(formModel, formActionType, formModel.moduleId)
+				},
+			}
 		},
 		required: true,
 		colProps: { span: 12 },
