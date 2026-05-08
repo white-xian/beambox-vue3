@@ -69,6 +69,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@element-plus/icons-vue": "^2.3.2",
     "@iconify/iconify": "^3.1.1",
     "@logicflow/core": "^1.2.26",
     "@logicflow/extension": "^1.2.26",
