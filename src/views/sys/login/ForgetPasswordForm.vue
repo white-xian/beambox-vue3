@@ -67,7 +67,7 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.RESET_PAS
 async function handleReset() {
 	const data = await validForm()
 	if (!data) return
-	console.log(data)
+	// console.log(data)
 }
 
 function handleSendCode() {

@@ -14,15 +14,10 @@
   import { computed, ref, unref } from 'vue';
   import { formSchema, initialize } from './menu.data';
   import { useMessage } from '@/hooks/web/useMessage';
-  import {
-    addMenuApi,
-    editMenuApi,
-    getMenuApi,
-    getMenuRouteListApi,
-  } from '@/api/system/authority/menu.api';
+  import { addMenuApi, editMenuApi, getMenuApi } from '@/api/system/authority/menu.api';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, useForm } from '@/components/Form';
-  import { COMMON_MODULE, MenuTypeEnum } from '@/enums/system/authority';
+  import { COMMON_MODULE } from '@/enums/system/authority';
   import { MenuIM } from '@/model/system/authority';
 
   const emit = defineEmits(['success', 'register']);
@@ -30,26 +25,25 @@
   const { createMessage } = useMessage();
   const isUpdate = ref(true);
 
-  const [registerForm, { resetFields, setFieldsValue, updateSchema, validate }] = useForm({
+  const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
     labelWidth: 100,
     schemas: formSchema,
     showActionButtonGroup: false,
   });
 
   const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
-    resetFields();
+    await resetFields();
     setModalProps({ confirmLoading: false });
     isUpdate.value = !!data?.isUpdate;
 
     if (unref(isUpdate)) {
       const menu = await getMenuApi(data.record.id);
       menu.tenantId = menu?.enterpriseInfo?.id;
-      setMenuTree(menu.id, menu.moduleId);
-      setFieldsValue({
+      await setFieldsValue({
         ...menu,
       });
     } else {
-      setMenuTree(undefined, COMMON_MODULE);
+      await setFieldsValue({ moduleId: COMMON_MODULE });
     }
   });
 
@@ -74,20 +68,5 @@
     } finally {
       setModalProps({ confirmLoading: false });
     }
-  }
-
-  /** 生成菜单树 */
-  async function setMenuTree(id: string | undefined, moduleId: string) {
-    const treeData = await getMenuRouteListApi({
-      id: id,
-      moduleId: moduleId,
-      menuTypeLimit: MenuTypeEnum.DIR,
-      exNodes: id !== undefined,
-      defaultNode: true,
-    });
-    updateSchema({
-      field: 'parentId',
-      componentProps: { treeData },
-    });
   }
 </script>

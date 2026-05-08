@@ -343,11 +343,11 @@ export default defineComponent({
             def={unref(getShowLogo)}
             disabled={unref(getIsMixSidebar)}
           />
-          <SwitchItem
+          {/* <SwitchItem
             title={"页脚"}
             event={HandlerEnum.SHOW_FOOTER}
             def={unref(getShowFooter)}
-          />
+          /> */}
           <SwitchItem
             title={"全屏内容"}
             event={HandlerEnum.FULL_CONTENT}

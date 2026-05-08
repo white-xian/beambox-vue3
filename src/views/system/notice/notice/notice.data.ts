@@ -101,7 +101,7 @@ export const formSchema: FormSchema[] = [
     field: 'name',
     component: 'Input',
     required: true,
-    colProps: { span: 24 },
+    colProps: { span: 16 },
   },
   {
     label: '公告类型',
@@ -111,7 +111,7 @@ export const formSchema: FormSchema[] = [
     componentProps: {
       options: dict.DicNoticeTypeOptions,
     },
-    colProps: { span: 24 },
+    colProps: { span: 8 },
   },
   {
     label: '公告内容',
@@ -128,6 +128,12 @@ export const formSchema: FormSchema[] = [
     colProps: { span: 24 },
   },
   {
+    label: '备注',
+    field: 'remark',
+    component: 'InputTextArea',
+    colProps: { span: 16 },
+  },
+  {
     label: '公告状态',
     field: 'status',
     component: 'Select',
@@ -138,13 +144,7 @@ export const formSchema: FormSchema[] = [
     },
     dynamicDisabled: true,
     ifShow: ({ values }) => isNotEmpty(values.id),
-    colProps: { span: 12 },
-  },
-  {
-    label: '备注',
-    field: 'remark',
-    component: 'InputTextArea',
-    colProps: { span: 24 },
+    colProps: { span: 8 },
   },
 ];
 

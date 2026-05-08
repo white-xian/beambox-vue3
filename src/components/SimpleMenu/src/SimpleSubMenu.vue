@@ -55,9 +55,7 @@
   import MenuItem from './components/MenuItem.vue';
   import SubMenu from './components/SubMenuItem.vue';
   import { propTypes } from '@/utils/propTypes';
-  import { createAsyncComponent } from '@/utils/factory/createAsyncComponent';
-
-  const SimpleMenuTag = createAsyncComponent(() => import('./SimpleMenuTag.vue'));
+  import SimpleMenuTag from './SimpleMenuTag.vue';
 
   defineOptions({ name: 'SimpleSubMenu' });
 
