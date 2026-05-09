@@ -36,7 +36,7 @@ import { getAiPetFirmwareDetailApi } from '@/api/ota/aiPetFirmware.api'
 import { AiPetFirmwareIM } from '@/model/ota'
 import { detailSchema, formatFileSize } from './data'
 
-const getTitle = ref('AI 宠物固件 OTA 详情')
+const getTitle = ref('AI 宠物固件详情')
 
 /** 当前详情抽屉展示的主版本记录 */
 const currentRecord = ref<AiPetFirmwareIM>({
@@ -61,7 +61,7 @@ const packageColumns: any[] = [
 
 /** 主版本基础信息描述组件配置 */
 const [registerDescription, { setDescProps }] = useDescription({
-	title: 'AI 宠物固件 OTA 详情',
+	title: 'AI 宠物固件详情',
 	schema: detailSchema,
 	column: DescItemSizeEnum.DEFAULT,
 })
@@ -130,7 +130,7 @@ function setRecord(record: AiPetFirmwareIM) {
 		updateTime: (record as any).updateTime,
 	}
 	setDescProps({ data: currentRecord.value })
-	getTitle.value = `AI 宠物固件 OTA 详情:${record.versionName}`
+	getTitle.value = `AI 宠物固件详情: ${record.versionName}`
 }
 </script>
 

@@ -7,13 +7,15 @@
 			<el-form ref="formRef" :model="formModel" :rules="rules" label-width="96px">
 				<el-row :gutter="16" class="basic-info-row">
 					<el-col :xs="24" :md="12">
-						<el-form-item label="主版本号" prop="versionCode">
-							<el-input-number v-model="formModel.versionCode" :min="1" :precision="0" controls-position="right" style="width: 100%" />
+						<el-form-item label="主版本名称" prop="versionName">
+							<el-input @input="onVersionNameChange" v-model="formModel.versionName" placeholder="例如 1.0.0">
+								<template #prepend>V</template>
+							</el-input>
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :md="12">
-						<el-form-item label="主版本名称" prop="versionName">
-							<el-input v-model="formModel.versionName" placeholder="例如 v1.0.0" />
+						<el-form-item label="主版本号" prop="versionCode">
+							<el-input-number disabled v-model="formModel.versionCode" :min="1" :precision="0" controls-position="right" style="width: 100%" />
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :md="12">
@@ -160,8 +162,8 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner((data) => {
 	if (unref(isUpdate) && data?.record) {
 		const record = data.record as AiPetFirmwareIM
 		formModel.id = record.id
-		formModel.versionCode = record.versionCode
-		formModel.versionName = record.versionName
+		formModel.versionName = normalizeVersionNameInput(record.versionName)
+		formModel.versionCode = getVersionCodeByName(formModel.versionName) ?? record.versionCode
 		formModel.description = record.description
 		formModel.status = record.status ?? AiPetFirmwareStatusEnum.DRAFT
 		formModel.packages = (record.packages || []).map((item) => ({
@@ -238,6 +240,32 @@ function normalizeText(value: unknown) {
 	return String(value ?? '').trim()
 }
 
+/** 去掉用户误输入的 V 前缀，并保留版本号需要的数字和点 */
+function normalizeVersionNameInput(value: string) {
+	return normalizeText(value)
+		.replace(/^[vV]/, '')
+		.replace(/[^\d.]/g, '')
+}
+
+/** 根据主版本名称去掉点号后生成主版本号 */
+function getVersionCodeByName(value: string) {
+	const versionCode = normalizeVersionNameInput(value).replace(/\./g, '')
+	return versionCode ? Number(versionCode) : undefined
+}
+
+/** 拼接提交给后端的主版本名称，固定以 V 开头 */
+function getSubmitVersionName() {
+	const versionName = normalizeVersionNameInput(formModel.versionName)
+	return versionName ? `V${versionName}` : ''
+}
+
+/** 主版本名称变更时自动生成主版本号 */
+function onVersionNameChange(value: string) {
+	const versionName = normalizeVersionNameInput(value)
+	formModel.versionName = versionName
+	formModel.versionCode = getVersionCodeByName(versionName)
+}
+
 /** 获取上传按钮悬浮提示文案 */
 function getPackageFileTip(record: PackageFormItem) {
 	if (record.uploading) {
@@ -309,10 +337,12 @@ async function handlePackageUpload(options: Recordable, record: PackageFormItem)
 
 /** 构造后端新增/更新接口需要的 payload */
 function buildPayload(): AiPetFirmwareIM {
+	const versionName = getSubmitVersionName()
+
 	return {
 		id: formModel.id,
-		versionCode: Number(formModel.versionCode),
-		versionName: formModel.versionName.trim(),
+		versionCode: getVersionCodeByName(versionName) ?? Number(formModel.versionCode),
+		versionName,
 		description: formModel.description.trim(),
 		status: formModel.status,
 		packages: formModel.packages.map((item) => {
