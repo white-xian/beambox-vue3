@@ -16,14 +16,12 @@ pipeline {
         /*harbor仓库配置*/
         HARBOR_HOST = "harbor.beambox.app" // harbor地址
         HARBOR_CREDENTIALSID = "jenkinsHarbor" // 登录harbor凭证id，请在系统管理处配置
-        HARBOR_IMAGE_NAME = "harbor.beambox.app/prod/hq-investment-ui"   // 镜像地址
+        HARBOR_IMAGE_NAME = "harbor.beambox.app/prod/beambox-vue3"   // 镜像地址
         /*rancher部署配置*/
         RANCHER_REDEPLOY_ENABLE = "true" // 是否开启rancher部署
         RANCHER_CREDENTIAL = "rke2" // 登录Rancher凭证id，请在系统管理处配置
         RANCHER_REDEPLOY_WORKLOAD = "/project/local:p-ltjs9/workloads/deployment:beambox:beambox-vue3" // Rancher API部署地址
-    }
-    tools {
-        nodejs "node"
+        PATH = "/usr/bin:/usr/local/bin:${env.PATH}"
     }
     stages{
         stage('拉取代码'){
@@ -35,11 +33,11 @@ pipeline {
                             [
                                 name: "*/${GIT_BRANCHE_NAME}"
                             ]
-                        ], 
-                        extensions: [], 
+                        ],
+                        extensions: [],
                         userRemoteConfigs: [
                             [
-                                credentialsId: "${GIT_CREDENTIALSID}", 
+                                credentialsId: "${GIT_CREDENTIALSID}",
                                 url: "${GIT_REPO_URL}"
                             ]
                         ]
@@ -47,7 +45,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('编译代码') {
             steps {
                 sh "${INSTALL_COMMAND}"
@@ -72,7 +70,7 @@ pipeline {
                 environment name: 'RANCHER_REDEPLOY_ENABLE', value: "true"
             }
             steps {
-                rancherRedeploy alwaysPull: true, credential: "${RANCHER_CREDENTIAL}", images: "${HARBOR_IMAGE_NAME}:${env.BUILD_NUMBER}", 
+                rancherRedeploy alwaysPull: true, credential: "${RANCHER_CREDENTIAL}", images: "${HARBOR_IMAGE_NAME}:${env.BUILD_NUMBER}",
                 workload: "${RANCHER_REDEPLOY_WORKLOAD}"
             }
         }
@@ -117,5 +115,6 @@ pipeline {
 //                         "> 构建日志：[点击查看详情](${BUILD_URL}console)"
 //                 ]
 //             )
+        }
     }
 }
