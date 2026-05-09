@@ -17,7 +17,7 @@ RUN mkdir -p /home/webapp
 WORKDIR /home/webapp
 
 # 复制conf文件到路径
-COPY ./deploy/nginx-${envType}.conf /etc/nginx/conf.d/nginx-${envType}.conf
+COPY ./deploy/nginx-${envType}.conf /etc/nginx/conf.d/default.conf
 
 # 复制html文件到路径
 COPY ./dist /home/webapp/dist
