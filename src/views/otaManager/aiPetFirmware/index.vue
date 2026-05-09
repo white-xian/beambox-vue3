@@ -57,7 +57,7 @@ import { useModal } from '@/components/Modal'
 import { IconEnum } from '@/enums'
 import { useMessage } from '@/hooks/web/useMessage'
 import { AiPetFirmwareIM, AiPetFirmwareStatusEnum } from '@/model/ota'
-import { columns, searchFormSchema } from './data'
+import { columns, normalizeFirmwareStatusByLatestUpdateTime, searchFormSchema } from './data'
 import Info from './info.vue'
 import Details from './details.vue'
 
@@ -90,6 +90,7 @@ const [registerTable, { reload }] = useTable({
 		listField: 'records',
 		totalField: 'total',
 	},
+	afterFetch: (records: AiPetFirmwareIM[]) => normalizeFirmwareStatusByLatestUpdateTime(records),
 	indexColumnProps: {
 		fixed: 'left',
 	},
@@ -120,7 +121,7 @@ const [registerTable, { reload }] = useTable({
 
 /** 仅草稿状态允许更新、发布和删除 */
 function isDraft(record: AiPetFirmwareIM) {
-	return record.status !== AiPetFirmwareStatusEnum.RELEASED
+	return record.status === AiPetFirmwareStatusEnum.DRAFT
 }
 
 /** 打开详情抽屉 */
@@ -165,9 +166,9 @@ function handleDelete(record?: AiPetFirmwareIM) {
 		return
 	}
 
-	const releasedRecords = records.filter((item) => !isDraft(item))
-	if (releasedRecords.length > 0) {
-		createMessage.warning('已发布的 OTA 版本不能删除')
+	const notDraftRecords = records.filter((item) => !isDraft(item))
+	if (notDraftRecords.length > 0) {
+		createMessage.warning('非草稿状态的 OTA 版本不能删除')
 		return
 	}
 

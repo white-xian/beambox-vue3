@@ -6,6 +6,8 @@ export enum AiPetFirmwareStatusEnum {
   DRAFT = 0,
   /** 已发布，可供设备侧获取 */
   RELEASED = 1,
+  /** 已下架，曾经发布过但现在不可用 */
+  OFFLINE = 2,
 }
 
 /** AI 宠物固件附属包模型 */
