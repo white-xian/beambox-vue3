@@ -43,7 +43,7 @@ export interface AiPetFirmwareIM extends BaseEntity {
   /** 当前主版本下的附属包列表 */
   packages: AiPetFirmwarePackageIM[];
   /** 是否强制升级 */
-  forceUpgrade?: boolean;
+  forceUpgrade?: string;
 }
 
 /** AI 宠物固件 OTA 查询参数 */

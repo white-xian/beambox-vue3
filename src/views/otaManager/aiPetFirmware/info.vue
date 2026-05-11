@@ -1,7 +1,7 @@
 <!-- @format -->
 
 <template>
-	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="420" :canFullscreen="false" :maskClosable="false" wrapClassName="ai-pet-firmware-modal" @ok="handleSubmit">
+	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="450" :canFullscreen="true" :maskClosable="false" wrapClassName="ai-pet-firmware-modal" @ok="handleSubmit">
 		<div class="dialog-content">
 			<BasicForm @register="registerForm" class="basic-info-form">
 				<template #formFooter>
@@ -35,7 +35,7 @@
 								</Col>
 								<Col :span="8">
 									<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
-										<a-upload :show-upload-list="false" :custom-request="(options: any) => handlePackageUpload(options, record)">
+										<Upload :show-upload-list="false" :custom-request="(options: any) => handlePackageUpload(options, record)">
 											<a-tooltip :title="getPackageFileTip(record)" placement="top">
 												<div
 													class="package-file-icon"
@@ -48,7 +48,7 @@
 													<FileOutlined v-else />
 												</div>
 											</a-tooltip>
-										</a-upload>
+										</Upload>
 									</Form.Item>
 								</Col>
 							</Row>
@@ -160,18 +160,26 @@ function createPackage(): PackageFormItem {
 	}
 }
 
+/** 仅为新建附属包自动分配 moduleCode（纯数字序号），不覆盖已有编码 */
+function assignDefaultModuleCode(record: PackageFormItem, index: number) {
+	if (!record.moduleCode || /^\d+$/.test(record.moduleCode)) {
+		record.moduleCode = String(index + 1)
+	}
+}
+
 /** 添加一个附属包，并清理旧校验状态 */
 function addPackage() {
 	packageList.value.push(createPackage())
-	packageList.value.forEach((item, index) => {
-		item.moduleCode = String(index + 1)
+	packageList.value.forEach((item, idx) => assignDefaultModuleCode(item, idx))
+	nextTick(() => {
+		clearValidate()
 	})
-	nextTick(() => clearValidate())
 }
 
 /** 删除指定附属包，并清理旧校验状态 */
 function removePackage(index: number) {
 	packageList.value.splice(index, 1)
+	packageList.value.forEach((item, idx) => assignDefaultModuleCode(item, idx))
 	nextTick(() => clearValidate())
 }
 
@@ -238,34 +246,41 @@ function normalizeUploadResult(response: Recordable, file: File) {
 
 /** 上传附属包文件，并把上传结果写回当前附属包表单项 */
 async function handlePackageUpload(options: Recordable, record: PackageFormItem) {
-	const file = options.file as File
+	const { file, onSuccess, onError, onProgress } = options as any
 	record.uploading = true
 	record.uploadPercent = 0
 
 	try {
-		const response = await fileUploadApi({ name: 'file', file }, (progressEvent) => {
+		const response = await fileUploadApi({ name: 'file', file }, (progressEvent: any) => {
 			const total = progressEvent.total || file.size || 0
-			record.uploadPercent = total ? Math.min(100, Math.round((progressEvent.loaded / total) * 100)) : 0
+			const percent = total ? Math.min(100, Math.round((progressEvent.loaded / total) * 100)) : 0
+			record.uploadPercent = percent
+			onProgress?.({ percent })
 		})
 		const responseData = response?.data || {}
 
 		if (responseData?.code && responseData.code !== 200) {
-			throw new Error(responseData.message || '上传失败')
+			const err = new Error(responseData.message || '上传失败')
+			onError?.(err)
+			throw err
 		}
 
 		const uploadResult = normalizeUploadResult(response, file)
 		if (!uploadResult.fileUrl) {
-			throw new Error('上传接口未返回文件地址')
+			const err = new Error('上传接口未返回文件地址')
+			onError?.(err)
+			throw err
 		}
 
 		record.fileName = uploadResult.fileName
 		record.fileUrl = uploadResult.fileUrl
 		record.fileSize = uploadResult.fileSize
 		record.uploadPercent = 100
+		onSuccess?.(response)
 		createMessage.success('固件文件上传成功')
 	} catch (error: any) {
 		createMessage.error(error?.message || '固件文件上传失败')
-		throw error
+		onError?.(error)
 	} finally {
 		record.uploading = false
 	}
@@ -398,7 +413,8 @@ async function handleSubmit() {
 }
 
 .package-card__body {
-	padding: 12px 18px 4px;
+  align-items: center;
+	padding: 24px 18px 4px;
 }
 
 /* ========= 文件图标 ========= */
