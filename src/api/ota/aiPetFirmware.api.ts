@@ -64,5 +64,5 @@ export const getAiPetFirmwareDetailApi = (versionId: string) =>
   defHttp.get<AiPetFirmwareIM>({ url: Api.PACKAGES_DETAILS + versionId });
 
 /** 发布版本是否推送 */
-export const setAiPetFirmwareReleasePushApi = (id: string, forceUpgrade: boolean) =>
+export const setAiPetFirmwareReleasePushApi = (id: string, forceUpgrade: string) =>
   defHttp.post({ url: Api.RELEASE_PUSH, params: { id, forceUpgrade } });

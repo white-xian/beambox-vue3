@@ -167,16 +167,17 @@ function handleRelease(record: AiPetFirmwareIM) {
 
 /** 发布版本推送设置，发布成功后刷新列表 */
 function handleReleasePush(record: AiPetFirmwareIM) {
-  const content = record.forceUpgrade
+  const forceUpgrade = record.forceUpgrade == '0'? false : true
+  const content = forceUpgrade
     ? `当前版本 ${record.versionName} 已设置为强制升级，是否取消强制升级?`
     : `当前版本 ${record.versionName} 未设置为强制升级，是否设置为强制升级?`
-  const action = record.forceUpgrade ? `取消${record.versionName}强制升级` : `设置${record.versionName}为强制升级`
+  const action = forceUpgrade ? `取消${record.versionName}强制升级` : `设置${record.versionName}为强制升级`
   createConfirm({
     iconType: 'warning',
     title: '提示',
     content: content,
     onOk: async () => {
-      await setAiPetFirmwareReleasePushApi(record.id as string, record.forceUpgrade ? false : true)
+      await setAiPetFirmwareReleasePushApi(record.id as string, forceUpgrade ? '0' : '1')
       createMessage.success(action)
       reload()
     },
