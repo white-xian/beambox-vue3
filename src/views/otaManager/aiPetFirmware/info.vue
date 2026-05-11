@@ -3,108 +3,75 @@
 <template>
 	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="420" :canFullscreen="false" :maskClosable="false" wrapClassName="ai-pet-firmware-modal" @ok="handleSubmit">
 		<div class="dialog-content">
-			<!-- 主版本基础信息表单 -->
-			<el-form ref="formRef" :model="formModel" :rules="rules" label-width="96px">
-				<el-row :gutter="16" class="basic-info-row">
-					<el-col :xs="24" :md="12">
-						<el-form-item label="主版本名称" prop="versionName">
-							<el-input @input="onVersionNameChange" v-model="formModel.versionName" placeholder="例如 1.0.0">
-								<template #prepend>V</template>
-							</el-input>
-						</el-form-item>
-					</el-col>
-					<el-col :xs="24" :md="12">
-						<el-form-item label="主版本号" prop="versionCode">
-							<el-input-number disabled v-model="formModel.versionCode" :min="1" :precision="0" controls-position="right" style="width: 100%" />
-						</el-form-item>
-					</el-col>
-					<el-col :xs="24" :md="12">
-						<el-form-item label="状态">
-							<el-radio-group v-model="formModel.status" disabled>
-								<el-radio :value="AiPetFirmwareStatusEnum.DRAFT">草稿</el-radio>
-								<el-radio :value="AiPetFirmwareStatusEnum.RELEASED">已发布</el-radio>
-							</el-radio-group>
-						</el-form-item>
-					</el-col>
-					<el-col :xs="24" :md="12">
-						<el-form-item label="附属包数量">
-							<span class="package-count">{{ formModel.packages.length }} 条</span>
-						</el-form-item>
-					</el-col>
-					<el-col :span="24">
-						<el-form-item label="升级说明" prop="description">
-							<el-input v-model="formModel.description" type="textarea" :rows="4" placeholder="请输入本次 OTA 升级说明" />
-						</el-form-item>
-					</el-col>
-				</el-row>
-
-				<el-divider content-position="left">附属包配置</el-divider>
-
-				<!-- 附属包操作栏：用于新增模块固件包 -->
-				<div class="package-toolbar">
-					<span class="package-toolbar__tip"> 支持配置多个模块的固件附属包，附属包项可按需新增。 </span>
-					<el-button type="primary" plain size="small" @click="addPackage"> 添加附属包 </el-button>
-				</div>
-
-				<!-- 空状态提示，避免用户误以为附属包区域未加载 -->
-				<div v-if="!formModel.packages.length" class="package-empty">暂无附属包配置，点击右上角"添加附属包"开始添加。</div>
-
-				<!-- 附属包表单卡片：每个卡片对应一个模块固件文件 -->
-				<div v-for="(record, index) in formModel.packages" :key="record.localKey" class="package-card">
-					<div class="package-card__header">
-						<span>附属包 {{ index + 1 }}</span>
-						<el-button link :disabled="formModel.packages.length <= 1" :style="{ color: formModel.packages.length <= 1 ? '#303133' : '#409eff' }" @click="removePackage(index)">
-							<el-icon><Delete /></el-icon>
-							<span style="margin-left: 2px">删除</span>
-						</el-button>
-					</div>
-
-					<el-row :gutter="12" style="align-items: center">
-						<el-col :xs="24" :md="7">
-							<el-form-item label="模块编码" required label-width="84px">
-								<el-input v-model="record.moduleCode" placeholder="MAIN/MCU/UI/RESOURCE" @blur="normalizeModuleCode(record)" />
-							</el-form-item>
-						</el-col>
-						<el-col :xs="24" :md="7">
-							<el-form-item label="模块名称" required label-width="84px">
-								<el-input v-model="record.moduleName" placeholder="例如 MCU 固件" />
-							</el-form-item>
-						</el-col>
-						<el-col :xs="24" :md="10">
-							<el-form-item label="固件文件" required label-width="84px" style="align-items: center">
-								<el-upload :show-file-list="false" :http-request="(options: any) => handlePackageUpload(options, record)">
-									<el-tooltip :content="getPackageFileTip(record)" placement="top">
-										<div
-											class="package-file-icon"
-											:class="{
-												'is-uploaded': !!record.fileUrl,
-												'is-uploading': record.uploading,
-											}"
-										>
-											<LoadingOutlined v-if="record.uploading" spin />
-											<FileOutlined v-else />
-										</div>
-									</el-tooltip>
-								</el-upload>
-							</el-form-item>
-						</el-col>
-					</el-row>
-				</div>
-			</el-form>
+			<BasicForm @register="registerForm" class="basic-info-form">
+				<template #formFooter>
+					<Col :span="24" style="padding-top: 8px; width: 100%">
+						<Divider orientation="left">附属包配置共 {{ packageList.length }} 条</Divider>
+						<div class="package-section-tip">
+							<span>支持配置多个模块的固件附属包，附属包项可按需新增。</span>
+							<a-button type="primary" size="small" @click="addPackage"> 添加附属包 </a-button>
+						</div>
+						<!-- 空状态提示 -->
+						<div v-if="!packageList.length" class="package-empty">暂无附属包配置，点击右上角"添加附属包"开始添加。</div>
+						<!-- 附属包表单卡片 -->
+						<div v-for="(record, index) in packageList" :key="record.localKey" class="package-card">
+							<div class="package-card__header">
+								<span class="package-card__title">附属包 {{ index + 1 }}</span>
+								<a-button type="link" :disabled="packageList.length <= 1" class="package-card__delete-btn" @click="removePackage(index)">
+									<DeleteOutlined />
+									<span>删除</span>
+								</a-button>
+							</div>
+							<Row :gutter="16" class="package-card__body">
+								<Col :span="8">
+									<Form.Item label="模块编码" :label-col="{ style: { width: '72px' } }" required>
+										<a-input disabled v-model:value="record.moduleCode" placeholder="MAIN/MCU/UI/RESOURCE" @blur="normalizeModuleCode(record)" />
+									</Form.Item>
+								</Col>
+								<Col :span="8">
+									<Form.Item label="模块名称" :label-col="{ style: { width: '72px' } }" required>
+										<a-input v-model:value="record.moduleName" placeholder="例如 MCU 固件" />
+									</Form.Item>
+								</Col>
+								<Col :span="8">
+									<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
+										<a-upload :show-upload-list="false" :custom-request="(options: any) => handlePackageUpload(options, record)">
+											<a-tooltip :title="getPackageFileTip(record)" placement="top">
+												<div
+													class="package-file-icon"
+													:class="{
+														'is-uploaded': !!record.fileUrl,
+														'is-uploading': record.uploading,
+													}"
+												>
+													<LoadingOutlined v-if="record.uploading" spin />
+													<FileOutlined v-else />
+												</div>
+											</a-tooltip>
+										</a-upload>
+									</Form.Item>
+								</Col>
+							</Row>
+						</div>
+					</Col>
+				</template>
+			</BasicForm>
 		</div>
 	</BasicModal>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, unref } from 'vue'
-import { Delete } from '@element-plus/icons-vue'
-import { LoadingOutlined, FileOutlined } from '@ant-design/icons-vue'
+import { computed, nextTick, ref, unref } from 'vue'
+import { DeleteOutlined, LoadingOutlined, FileOutlined } from '@ant-design/icons-vue'
 import { BasicModal, useModalInner } from '@/components/Modal'
+import { BasicForm, useForm } from '@/components/Form'
 import { useMessage } from '@/hooks/web/useMessage'
 import { fileUploadApi } from '@/api/sys/upload.api'
 import { addAiPetFirmwareApi, updateAiPetFirmwareApi } from '@/api/ota/aiPetFirmware.api'
 import { AiPetFirmwareIM, AiPetFirmwarePackageIM, AiPetFirmwareStatusEnum } from '@/model/ota'
-import type { FormInstance, FormRules } from 'element-plus'
+import { formSchema } from './info.data'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Row, Col, Divider, Tooltip, Upload, Form } from 'ant-design-vue'
 
 /** 前端表单使用的附属包项，比接口模型多本地 key 和上传状态 */
 type PackageFormItem = AiPetFirmwarePackageIM & {
@@ -113,21 +80,18 @@ type PackageFormItem = AiPetFirmwarePackageIM & {
 	uploadPercent?: number
 }
 
-/** AI 宠物固件 OTA 新增/更新表单模型 */
-interface FirmwareFormModel {
-	id?: string
-	versionCode?: number
-	versionName: string
-	description: string
-	status?: AiPetFirmwareStatusEnum
-	packages: PackageFormItem[]
-}
-
 const emit = defineEmits(['success', 'register'])
 const { createMessage } = useMessage()
 const isUpdate = ref(false)
-const formRef = ref<FormInstance | null>(null)
+const recordId = ref<string | undefined>()
+const packageList = ref<PackageFormItem[]>([])
 let packageIndex = 0
+
+const [registerForm, { resetFields, setFieldsValue, validate, clearValidate }] = useForm({
+	labelWidth: 96,
+	schemas: formSchema,
+	showActionButtonGroup: false,
+})
 
 /** 常用模块编码与模块名称映射，用于输入编码后自动补全名称 */
 const moduleNameMap: Record<string, string> = {
@@ -137,44 +101,36 @@ const moduleNameMap: Record<string, string> = {
 	RESOURCE: '资源包',
 }
 
-/** 弹窗表单数据 */
-const formModel = reactive<FirmwareFormModel>({
-	versionCode: undefined,
-	versionName: '',
-	description: '',
-	status: AiPetFirmwareStatusEnum.DRAFT,
-	packages: [],
-})
-
-/** 主版本基础字段校验规则 */
-const rules: FormRules = {
-	versionCode: [{ required: true, message: '请输入主版本号', trigger: 'change' }],
-	versionName: [{ required: true, message: '请输入主版本名称', trigger: 'blur' }],
-	description: [{ required: true, message: '请输入升级说明', trigger: 'blur' }],
-}
-
 /** 打开弹窗时根据新增/更新模式初始化表单 */
-const [registerModal, { setModalProps, closeModal }] = useModalInner((data) => {
-	resetForm()
+const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
+	await resetFields()
 	setModalProps({ loading: true, confirmLoading: false })
 	isUpdate.value = !!data?.isUpdate
+	recordId.value = undefined
+	packageList.value = []
 
 	if (unref(isUpdate) && data?.record) {
 		const record = data.record as AiPetFirmwareIM
-		formModel.id = record.id
-		formModel.versionName = normalizeVersionNameInput(record.versionName)
-		formModel.versionCode = getVersionCodeByName(formModel.versionName) ?? record.versionCode
-		formModel.description = record.description
-		formModel.status = record.status ?? AiPetFirmwareStatusEnum.DRAFT
-		formModel.packages = (record.packages || []).map((item) => ({
+		recordId.value = record.id
+		await setFieldsValue({
+			versionName: normalizeVersionNameInput(record.versionName),
+			versionCode: getVersionCodeByName(record.versionName) ?? record.versionCode,
+			description: record.description,
+			status: record.status ?? AiPetFirmwareStatusEnum.DRAFT,
+		})
+		packageList.value = (record.packages || []).map((item) => ({
 			...item,
 			localKey: createLocalKey(),
 			uploading: false,
 			uploadPercent: item.fileUrl ? 100 : 0,
 		}))
+	} else {
+		await setFieldsValue({
+			status: AiPetFirmwareStatusEnum.DRAFT,
+		})
 	}
 
-	if (formModel.packages.length === 0) {
+	if (packageList.value.length === 0) {
 		addPackage()
 	}
 
@@ -204,26 +160,19 @@ function createPackage(): PackageFormItem {
 	}
 }
 
-/** 重置弹窗表单到新增默认状态 */
-function resetForm() {
-	formModel.id = undefined
-	formModel.versionCode = undefined
-	formModel.versionName = ''
-	formModel.description = ''
-	formModel.status = AiPetFirmwareStatusEnum.DRAFT
-	formModel.packages = []
-}
-
 /** 添加一个附属包，并清理旧校验状态 */
 function addPackage() {
-	formModel.packages.push(createPackage())
-	nextTick(() => formRef.value?.clearValidate())
+	packageList.value.push(createPackage())
+	packageList.value.forEach((item, index) => {
+		item.moduleCode = String(index + 1)
+	})
+	nextTick(() => clearValidate())
 }
 
 /** 删除指定附属包，并清理旧校验状态 */
 function removePackage(index: number) {
-	formModel.packages.splice(index, 1)
-	nextTick(() => formRef.value?.clearValidate())
+	packageList.value.splice(index, 1)
+	nextTick(() => clearValidate())
 }
 
 /** 规范化模块编码，并在命中常用编码时自动填充模块名称 */
@@ -249,21 +198,8 @@ function normalizeVersionNameInput(value: string) {
 
 /** 根据主版本名称去掉点号后生成主版本号 */
 function getVersionCodeByName(value: string) {
-	const versionCode = normalizeVersionNameInput(value).replace(/\./g, '')
+	const versionCode = normalizeVersionNameInput(value ?? '').replace(/\./g, '')
 	return versionCode ? Number(versionCode) : undefined
-}
-
-/** 拼接提交给后端的主版本名称，固定以 V 开头 */
-function getSubmitVersionName() {
-	const versionName = normalizeVersionNameInput(formModel.versionName)
-	return versionName ? `V${versionName}` : ''
-}
-
-/** 主版本名称变更时自动生成主版本号 */
-function onVersionNameChange(value: string) {
-	const versionName = normalizeVersionNameInput(value)
-	formModel.versionName = versionName
-	formModel.versionCode = getVersionCodeByName(versionName)
 }
 
 /** 获取上传按钮悬浮提示文案 */
@@ -336,16 +272,16 @@ async function handlePackageUpload(options: Recordable, record: PackageFormItem)
 }
 
 /** 构造后端新增/更新接口需要的 payload */
-function buildPayload(): AiPetFirmwareIM {
-	const versionName = getSubmitVersionName()
+function buildPayload(values: Recordable): AiPetFirmwareIM {
+	const versionName = values.versionName ? `V${values.versionName}` : ''
 
 	return {
-		id: formModel.id,
-		versionCode: getVersionCodeByName(versionName) ?? Number(formModel.versionCode),
+		id: recordId.value,
+		versionCode: getVersionCodeByName(values.versionName) ?? Number(values.versionCode),
 		versionName,
-		description: formModel.description.trim(),
-		status: formModel.status,
-		packages: formModel.packages.map((item) => {
+		description: (values.description || '').trim(),
+		status: values.status,
+		packages: packageList.value.map((item) => {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { localKey, uploading, uploadPercent, ...packageItem } = item
 			return {
@@ -362,27 +298,26 @@ function buildPayload(): AiPetFirmwareIM {
 
 /** 提交新增或更新表单 */
 async function handleSubmit() {
-	if (!formRef.value) return
-
+	let values: Recordable
 	try {
-		await formRef.value.validate()
+		values = await validate()
 	} catch {
 		return
 	}
 
 	// 自定义验证附属包
-	if (formModel.packages.length === 0) {
+	if (packageList.value.length === 0) {
 		createMessage.warning('请至少添加一个附属包')
 		return
 	}
 
-	const invalidModuleIndex = formModel.packages.findIndex((item) => !item.moduleCode?.trim() || !item.moduleName?.trim())
+	const invalidModuleIndex = packageList.value.findIndex((item) => !item.moduleCode?.trim() || !item.moduleName?.trim())
 	if (invalidModuleIndex > -1) {
 		createMessage.warning(`请完善第 ${invalidModuleIndex + 1} 个附属包模块信息`)
 		return
 	}
 
-	const invalidFileIndex = formModel.packages.findIndex((item) => !item.fileName?.trim() || !item.fileUrl?.trim() || !normalizeText(item.fileSize))
+	const invalidFileIndex = packageList.value.findIndex((item) => !item.fileName?.trim() || !item.fileUrl?.trim() || !normalizeText(item.fileSize))
 	if (invalidFileIndex > -1) {
 		createMessage.warning(`请上传第 ${invalidFileIndex + 1} 个附属包文件`)
 		return
@@ -390,7 +325,7 @@ async function handleSubmit() {
 
 	try {
 		setModalProps({ confirmLoading: true })
-		const payload = buildPayload()
+		const payload = buildPayload(values)
 		if (unref(isUpdate)) {
 			await updateAiPetFirmwareApi(payload)
 			createMessage.success('更新 AI 宠物固件 OTA 成功')
@@ -413,30 +348,13 @@ async function handleSubmit() {
 	padding-right: 8px;
 }
 
-.basic-info-row > .el-col {
-	display: flex;
-}
-
-.basic-info-row > .el-col :deep(.el-form-item) {
-	width: 100%;
-}
-
-.package-count {
-	color: #606266;
-	line-height: 32px;
-}
-
-.package-toolbar {
+/* ========= 附属包提示行 ========= */
+.package-section-tip {
 	display: flex;
 	align-items: center;
-	justify-content: flex-end;
-	gap: 12px;
-	margin-bottom: 12px;
-}
-
-.package-toolbar__tip {
-	flex: 1;
-	color: #606266;
+	justify-content: space-between;
+	margin-bottom: 16px;
+	color: #909399;
 	font-size: 13px;
 }
 
@@ -449,24 +367,41 @@ async function handleSubmit() {
 	background: #fafafa;
 }
 
+/* ========= 附属包卡片 ========= */
 .package-card {
 	margin-bottom: 12px;
-	padding: 16px 18px 4px;
+	padding: 0;
 	border: 1px solid #dcdfe6;
 	border-radius: 8px;
 	background: #fff;
-	align-items: center;
+	overflow: hidden;
 }
 
 .package-card__header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 12px;
-	color: #606266;
-	font-weight: 500;
+	padding: 12px 18px;
+	background: #fafafa;
+	border-bottom: 1px solid #ebeef5;
 }
 
+.package-card__title {
+	font-size: 14px;
+	font-weight: 500;
+	color: #303133;
+}
+
+.package-card__delete-btn {
+	color: #f56c6c;
+	padding: 0;
+}
+
+.package-card__body {
+	padding: 12px 18px 4px;
+}
+
+/* ========= 文件图标 ========= */
 .package-file-icon {
 	display: inline-flex;
 	align-items: center;
@@ -493,13 +428,64 @@ async function handleSubmit() {
 }
 
 @media (max-width: 768px) {
-	.package-toolbar {
+	.package-section-tip {
 		align-items: stretch;
 		flex-direction: column;
+		gap: 8px;
 	}
 
-	.package-toolbar .el-button {
+	.package-section-tip .ant-btn {
 		align-self: flex-end;
+	}
+}
+</style>
+
+<style lang="scss">
+html[data-theme='dark'] {
+	.ai-pet-firmware-modal {
+		.ant-divider-inner-text {
+			color: #c9d1d9;
+			background: #151515;
+		}
+
+		.package-section-tip {
+			color: #8b949e;
+		}
+
+		.package-empty {
+			color: #8b949e;
+			background: #1a1a1a;
+			border-color: #303030;
+		}
+
+		.package-card {
+			background: #1a1a1a;
+			border-color: #303030;
+		}
+
+		.package-card__header {
+			background: #21262d;
+			border-bottom-color: #303030;
+		}
+
+		.package-card__title {
+			color: #e6edf3;
+		}
+
+		.package-file-icon {
+			color: #6e7681;
+			background: #21262d;
+		}
+
+		.package-file-icon:hover,
+		.package-file-icon.is-uploaded {
+			color: #58a6ff;
+			background: #1c2a3d;
+		}
+
+		.package-file-icon.is-uploading {
+			color: #58a6ff;
+		}
 	}
 }
 </style>

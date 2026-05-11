@@ -27,6 +27,8 @@ enum Api {
   PACKAGES_DELETE = basicApi + '/packages/delete/',
   /** 查询主版本附属包详情 */
   PACKAGES_DETAILS = basicApi + '/packages/',
+  /** 发布版本是否推送 */
+  RELEASE_PUSH = basicApi + '/forceUpgrade',
 }
 
 /** 查询 AI 宠物固件 OTA 列表 */
@@ -60,3 +62,7 @@ export const deleteAiPetFirmwarePackageApi = (id: string) =>
 /** 根据主版本 ID 查询固件详情及附属包列表 */
 export const getAiPetFirmwareDetailApi = (versionId: string) =>
   defHttp.get<AiPetFirmwareIM>({ url: Api.PACKAGES_DETAILS + versionId });
+
+/** 发布版本是否推送 */
+export const setAiPetFirmwareReleasePushApi = (versionId: string, forceUpgrade: boolean) =>
+  defHttp.post({ url: Api.RELEASE_PUSH, params: { versionId, forceUpgrade } });
