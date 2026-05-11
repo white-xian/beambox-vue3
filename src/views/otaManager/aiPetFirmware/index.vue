@@ -38,6 +38,13 @@
 							ifShow: () => isDraft(record),
 							onClick: handleDelete.bind(null, record),
 						},
+            {
+              icon: 'ant-design:pushpin-outlined',
+              tooltip: '推送设置',
+              auth: AiPetFirmwareAuth.RELEASEPUSH,
+              ifShow: () => record.status === AiPetFirmwareStatusEnum.RELEASED,
+              onClick: handleReleasePush.bind(null, record),
+            }
 					]"
 				/>
 			</template>
@@ -49,7 +56,7 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { deleteAiPetFirmwareApi, listAiPetFirmwareApi, releaseAiPetFirmwareApi } from '@/api/ota/aiPetFirmware.api'
+import { deleteAiPetFirmwareApi, listAiPetFirmwareApi, releaseAiPetFirmwareApi, setAiPetFirmwareReleasePushApi } from '@/api/ota/aiPetFirmware.api'
 import { AiPetFirmwareAuth } from '@/auth/ota'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { useDrawer } from '@/components/Drawer'
@@ -156,6 +163,24 @@ function handleRelease(record: AiPetFirmwareIM) {
 			reload()
 		},
 	})
+}
+
+/** 发布版本推送设置，发布成功后刷新列表 */
+function handleReleasePush(record: AiPetFirmwareIM) {
+  const content = record.forceUpgrade
+    ? `当前版本 ${record.versionName} 已设置为强制升级，是否取消强制升级?`
+    : `当前版本 ${record.versionName} 未设置为强制升级，是否设置为强制升级?`
+  const action = record.forceUpgrade ? `取消${record.versionName}强制升级` : `设置${record.versionName}为强制升级`
+  createConfirm({
+    iconType: 'warning',
+    title: '提示',
+    content: content,
+    onOk: async () => {
+      await setAiPetFirmwareReleasePushApi(record.id as string, record.forceUpgrade ? false : true)
+      createMessage.success(action)
+      reload()
+    },
+  })
 }
 
 /** 删除单条或批量删除草稿版本 */

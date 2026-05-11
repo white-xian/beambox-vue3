@@ -16,4 +16,6 @@ export enum AiPetFirmwareAuth {
   PACKAGESADD = 'FE:ota:aiPetFirmware:packages:add',
   /** OTA管理 | AI宠物固件管理 | 附属包删除 */
   PACKAGESDEL = 'FE:ota:aiPetFirmware:packages:delete',
+  /** OTA管理 | AI宠物固件管理 | 发布版本推送设置 */
+  RELEASEPUSH = 'FE:ota:aiPetFirmware:releasePush',
 }
