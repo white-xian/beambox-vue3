@@ -310,6 +310,7 @@ async function handleCustomRequest(options: Recordable) {
 			response = await defHttp.uploadFile(
 				{
 					url: uploadUrl + props.uploadApiUrl,
+					timeout: 60 * 1000,
 					onUploadProgress: (progressEvent: any) => {
 						const total = progressEvent.total || file.size || 0
 						const percent = total ? Math.min(100, Math.round((progressEvent.loaded / total) * 100)) : 0
@@ -386,8 +387,13 @@ async function handleCustomRequest(options: Recordable) {
 		emit('uploaded', { ...item, url: result.url, name: result.name || item.name } as FileUploadItem)
 	} catch (error: any) {
 		updateItem(uid, { status: UploadStatusEnum.ERROR })
+		// 超时 / 网络错误由 axios 拦截器统一提示，这里跳过
+		const isTimeoutOrNetwork =
+			error?.code === 'ECONNABORTED' ||
+			error?.message?.includes('Network Error') ||
+			error?.message?.includes('timeout');
 		// HTTP 层错误由拦截器统一提示，这里只处理业务层错误
-		if (!error?.response) {
+		if (!error?.response && !isTimeoutOrNetwork) {
 			createMessage.error(error?.message || '文件上传失败')
 		}
 		onError?.(new Error('上传失败'))
@@ -650,5 +656,100 @@ $success-color: #67c23a;
 .file-upload__footer-actions {
 	display: flex;
 	gap: 8px;
+}
+
+/* ==================== 暗色主题适配 ==================== */
+html[data-theme='dark'] {
+	.file-upload {
+		/* 已完成文件列表 */
+		&__done-list {
+			background: #0d1f14;
+			border-color: #1a4d2e;
+		}
+
+		&__done-item {
+			& + & {
+				border-top-color: #1a3a26;
+			}
+		}
+
+		&__done-name {
+			color: #e6edf3;
+		}
+
+		&__done-size {
+			color: #6e7681;
+		}
+
+		&__done-remove {
+			color: #6e7681;
+			&:hover {
+				color: $danger-color;
+			}
+		}
+
+		/* 拖拽区域 */
+		&__dragger {
+			:deep(.ant-upload-drag) {
+				border-color: #30363d;
+				background: #161b22;
+
+				&:hover {
+					border-color: $primary-color;
+					background: #0d2137;
+				}
+			}
+
+			:deep(.ant-upload-drag-hover),
+			:deep(.ant-upload.ant-upload-drag-hover) {
+				border-color: $primary-color !important;
+				background: #0d2137 !important;
+			}
+		}
+
+		&__drag-icon {
+			color: #6e7681;
+		}
+
+		&__drag-text {
+			color: #c9d1d9;
+		}
+
+		&__drag-tip {
+			color: #8b949e;
+		}
+
+		/* 进度列表 */
+		&__progress-list {
+			background: #161b22;
+			border-color: #30363d;
+		}
+
+		&__progress-item {
+			background: #0d1117;
+			border-color: #21262d;
+		}
+
+		&__progress-file-name {
+			color: #e6edf3;
+		}
+
+		&__progress-file-size {
+			color: #6e7681;
+		}
+
+		&__progress-bar {
+			background: #21262d;
+		}
+
+		&__progress-text {
+			color: #c9d1d9;
+		}
+
+		/* 底部 */
+		&__footer-count {
+			color: #8b949e;
+		}
+	}
 }
 </style>

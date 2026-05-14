@@ -118,6 +118,8 @@
   const fullscreen = ref(false);
   const tinymceId = ref<string>(buildShortUUID('tiny-vue'));
   const elRef = ref<HTMLElement | null>(null);
+  /** 主题切换时暂存内容，避免依赖父组件 v-model 回传时序 */
+  const savedContent = ref('');
 
   const { prefixCls } = useDesign('tinymce-container');
 
@@ -185,6 +187,24 @@
     },
   );
 
+  /** 主题切换时重建编辑器以更换皮肤 */
+  watch(skinName, () => {
+    const editor = unref(editorRef);
+    if (!editor) return;
+    // 1. 保存内容到本地 ref（避免依赖父组件 v-model 回传的时序问题）
+    savedContent.value = editor.getContent();
+    emit('update:modelValue', savedContent.value);
+    emit('change', savedContent.value);
+    // 2. 销毁编辑器
+    editor.destroy();
+    editorRef.value = null;
+    // 3. 生成新的元素 id，避免 TinyMCE 在同一个 DOM 上复用时出现清理不彻底的问题
+    tinymceId.value = buildShortUUID('tiny-vue');
+    nextTick(() => {
+      setTimeout(() => initEditor(), 100);
+    });
+  });
+
   onMountedOrActivated(() => {
     if (!initOptions.value.inline) {
       tinymceId.value = buildShortUUID('tiny-vue');
@@ -230,7 +250,7 @@
     if (!editor) {
       return;
     }
-    const value = props.modelValue || '';
+    const value = props.modelValue || props.value || savedContent.value || '';
 
     editor.setContent(value);
     bindModelHandlers(editor);
@@ -238,13 +258,14 @@
   }
 
   function setValue(editor: Record<string, any>, val?: string, prevVal?: string) {
+    if (!editor) return;
+    // 兼容 resetFields 后 val 为 undefined 的场景，统一转为空字符串
+    const strVal = typeof val === 'string' ? val : '';
     if (
-      editor &&
-      typeof val === 'string' &&
-      val !== prevVal &&
-      val !== editor.getContent({ format: attrs.outputFormat })
+      strVal !== prevVal &&
+      strVal !== editor.getContent({ format: attrs.outputFormat })
     ) {
-      editor.setContent(val);
+      editor.setContent(strVal);
     }
   }
 

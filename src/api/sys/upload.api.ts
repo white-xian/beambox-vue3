@@ -20,6 +20,7 @@ export const fileUploadApi = (
     {
       url: uploadUrl + Api.UPLOAD_FILE,
       onUploadProgress,
+      timeout: 60 * 1000,
     },
     params,
   );
