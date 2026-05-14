@@ -1,7 +1,7 @@
 <!-- @format -->
 
 <template>
-	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="450" :canFullscreen="true" :maskClosable="false" wrapClassName="ai-pet-firmware-modal" @ok="handleSubmit">
+	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="450" :canFullscreen="true" :maskClosable="false" :centered="true" wrapClassName="ai-pet-firmware-modal" @ok="handleSubmit">
 		<div class="dialog-content">
 			<BasicForm @register="registerForm" class="basic-info-form">
 				<template #formFooter>
@@ -35,20 +35,7 @@
 								</Col>
 								<Col :span="8">
 									<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
-										<Upload :show-upload-list="false" :custom-request="(options: any) => handlePackageUpload(options, record)">
-											<a-tooltip :title="getPackageFileTip(record)" placement="top">
-												<div
-													class="package-file-icon"
-													:class="{
-														'is-uploaded': !!record.fileUrl,
-														'is-uploading': record.uploading,
-													}"
-												>
-													<LoadingOutlined v-if="record.uploading" spin />
-													<FileOutlined v-else />
-												</div>
-											</a-tooltip>
-										</Upload>
+										<SingleFileUpload v-model:value="record.fileUrl" list-type="picture-card" :max-size="50" upload-api-url="/file/oss/upload" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
 									</Form.Item>
 								</Col>
 							</Row>
@@ -62,22 +49,19 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, unref } from 'vue'
-import { DeleteOutlined, LoadingOutlined, FileOutlined } from '@ant-design/icons-vue'
+import { DeleteOutlined } from '@ant-design/icons-vue'
 import { BasicModal, useModalInner } from '@/components/Modal'
 import { BasicForm, useForm } from '@/components/Form'
 import { useMessage } from '@/hooks/web/useMessage'
-import { fileUploadApi } from '@/api/sys/upload.api'
+import { SingleFileUpload } from '@/components/FileUpload'
 import { addAiPetFirmwareApi, updateAiPetFirmwareApi } from '@/api/ota/aiPetFirmware.api'
 import { AiPetFirmwareIM, AiPetFirmwarePackageIM, AiPetFirmwareStatusEnum } from '@/model/ota'
 import { formSchema } from './info.data'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Row, Col, Divider, Tooltip, Upload, Form } from 'ant-design-vue'
+import { Row, Col, Divider, Form } from 'ant-design-vue'
 
-/** 前端表单使用的附属包项，比接口模型多本地 key 和上传状态 */
+/** 前端表单使用的附属包项，比接口模型多本地 key */
 type PackageFormItem = AiPetFirmwarePackageIM & {
 	localKey: string
-	uploading?: boolean
-	uploadPercent?: number
 }
 
 const emit = defineEmits(['success', 'register'])
@@ -121,8 +105,6 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 		packageList.value = (record.packages || []).map((item) => ({
 			...item,
 			localKey: createLocalKey(),
-			uploading: false,
-			uploadPercent: item.fileUrl ? 100 : 0,
 		}))
 	} else {
 		await setFieldsValue({
@@ -155,8 +137,6 @@ function createPackage(): PackageFormItem {
 		fileName: '',
 		fileUrl: '',
 		fileSize: '',
-		uploading: false,
-		uploadPercent: 0,
 	}
 }
 
@@ -210,80 +190,11 @@ function getVersionCodeByName(value: string) {
 	return versionCode ? Number(versionCode) : undefined
 }
 
-/** 获取上传按钮悬浮提示文案 */
-function getPackageFileTip(record: PackageFormItem) {
-	if (record.uploading) {
-		return `上传中 ${record.uploadPercent || 0}%`
-	}
-	return record.fileName || '点击上传固件文件'
-}
-
-/** 从上传接口返回中按候选字段取值，兼容不同后端字段名 */
-function pickUploadValue(data: Recordable, keys: string[]) {
-	for (const key of keys) {
-		const value = data?.[key]
-		if (value !== undefined && value !== null && value !== '') {
-			return value
-		}
-	}
-	return undefined
-}
-
-/** 归一化上传接口返回，提取文件名、地址和大小 */
-function normalizeUploadResult(response: Recordable, file: File) {
-	const responseData = response?.data || response || {}
-	const data = responseData?.data || responseData
-	const fileUrl = (typeof data === 'string' ? data : pickUploadValue(data, ['fileUrl', 'url', 'ossUrl', 'path'])) || ''
-	const fileName = pickUploadValue(data, ['fileName', 'name', 'originalName', 'originalFilename']) || file.name
-	const fileSize = pickUploadValue(data, ['fileSize', 'size']) ?? file.size
-
-	return {
-		fileName: String(fileName || ''),
-		fileUrl: String(fileUrl || ''),
-		fileSize: normalizeText(fileSize),
-	}
-}
-
-/** 上传附属包文件，并把上传结果写回当前附属包表单项 */
-async function handlePackageUpload(options: Recordable, record: PackageFormItem) {
-	const { file, onSuccess, onError, onProgress } = options as any
-	record.uploading = true
-	record.uploadPercent = 0
-
-	try {
-		const response = await fileUploadApi({ name: 'file', file }, (progressEvent: any) => {
-			const total = progressEvent.total || file.size || 0
-			const percent = total ? Math.min(100, Math.round((progressEvent.loaded / total) * 100)) : 0
-			record.uploadPercent = percent
-			onProgress?.({ percent })
-		})
-		const responseData = response?.data || {}
-
-		if (responseData?.code && responseData.code !== 200) {
-			const err = new Error(responseData.message || '上传失败')
-			onError?.(err)
-			throw err
-		}
-
-		const uploadResult = normalizeUploadResult(response, file)
-		if (!uploadResult.fileUrl) {
-			const err = new Error('上传接口未返回文件地址')
-			onError?.(err)
-			throw err
-		}
-
-		record.fileName = uploadResult.fileName
-		record.fileUrl = uploadResult.fileUrl
-		record.fileSize = uploadResult.fileSize
-		record.uploadPercent = 100
-		onSuccess?.(response)
-		createMessage.success('固件文件上传成功')
-	} catch (error: any) {
-		createMessage.error(error?.message || '固件文件上传失败')
-		onError?.(error)
-	} finally {
-		record.uploading = false
-	}
+/** FileUpload 上传成功后，将文件名和大小同步到附属包表单项 */
+function onPackageUploadSuccess(record: PackageFormItem, uploadItem: { name: string; size: number; url: string }) {
+	record.fileName = uploadItem.name || ''
+	record.fileUrl = uploadItem.url || ''
+	record.fileSize = String(uploadItem.size || '')
 }
 
 /** 构造后端新增/更新接口需要的 payload */
@@ -298,7 +209,7 @@ function buildPayload(values: Recordable): AiPetFirmwareIM {
 		status: values.status,
 		packages: packageList.value.map((item) => {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { localKey, uploading, uploadPercent, ...packageItem } = item
+			const { localKey, ...packageItem } = item
 			return {
 				...packageItem,
 				moduleCode: packageItem.moduleCode.trim(),
@@ -358,7 +269,7 @@ async function handleSubmit() {
 
 <style lang="scss" scoped>
 .dialog-content {
-	max-height: 68vh;
+	max-height: 70vh;
 	overflow-y: auto;
 	padding-right: 8px;
 }
@@ -413,34 +324,8 @@ async function handleSubmit() {
 }
 
 .package-card__body {
-  align-items: center;
-	padding: 24px 18px 4px;
-}
-
-/* ========= 文件图标 ========= */
-.package-file-icon {
-	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	width: 56px;
-	height: 40px;
-	border-radius: 8px;
-	color: #b8c1cc;
-	background: #f4f6fb;
-	cursor: pointer;
-	transition:
-		color 0.2s ease,
-		background-color 0.2s ease;
-}
-
-.package-file-icon:hover,
-.package-file-icon.is-uploaded {
-	color: #409eff;
-	background: #ecf5ff;
-}
-
-.package-file-icon.is-uploading {
-	color: #409eff;
+	padding: 24px 18px 4px;
 }
 
 @media (max-width: 768px) {
@@ -486,21 +371,6 @@ html[data-theme='dark'] {
 
 		.package-card__title {
 			color: #e6edf3;
-		}
-
-		.package-file-icon {
-			color: #6e7681;
-			background: #21262d;
-		}
-
-		.package-file-icon:hover,
-		.package-file-icon.is-uploaded {
-			color: #58a6ff;
-			background: #1c2a3d;
-		}
-
-		.package-file-icon.is-uploading {
-			color: #58a6ff;
 		}
 	}
 }

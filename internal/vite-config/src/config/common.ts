@@ -16,7 +16,20 @@ const commonConfig: (mode: string) => UserConfig = (mode) => ({
       maxParallelFileOps: 3,
     },
   },
-  plugins: [UnoCSS()],
+  plugins: [
+    UnoCSS({
+      theme: {
+        breakpoints: {
+          xs: '320px',
+          sm: '640px',
+          md: '768px',
+          lg: '960px',
+          xl: '1100px',
+          '2xl': '1536px',
+        },
+      },
+    }),
+  ],
 });
 
 export { commonConfig };
