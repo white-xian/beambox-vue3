@@ -164,14 +164,14 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
 	{
 		label: '主版本名称',
-		field: 'versionName',
-		component: 'Input',
+		field: 'versionCode',
+		component: 'InputNumber',
 		colProps: { span: 6 },
 	},
 	{
-		label: '主版本号',
-		field: 'versionCode',
-		component: 'InputNumber',
+		label: '升级说明',
+		field: 'description',
+		component: 'Input',
 		colProps: { span: 6 },
 	},
 	{

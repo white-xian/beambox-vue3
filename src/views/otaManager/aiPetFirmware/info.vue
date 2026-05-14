@@ -35,7 +35,7 @@
 								</Col>
 								<Col :span="8">
 									<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
-										<FileUpload v-model:value="record.fileUrl" mode="single" list-type="picture-card" :max-size="10" upload-api-url="/file/oss/upload" :show-help-text="false" :replaceable="true" :previewable="true" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
+										<SingleFileUpload v-model:value="record.fileUrl" list-type="picture-card" :max-size="50" upload-api-url="/file/oss/upload" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
 									</Form.Item>
 								</Col>
 							</Row>
@@ -53,7 +53,7 @@ import { DeleteOutlined } from '@ant-design/icons-vue'
 import { BasicModal, useModalInner } from '@/components/Modal'
 import { BasicForm, useForm } from '@/components/Form'
 import { useMessage } from '@/hooks/web/useMessage'
-import { FileUpload } from '@/components/FileUpload'
+import { SingleFileUpload } from '@/components/FileUpload'
 import { addAiPetFirmwareApi, updateAiPetFirmwareApi } from '@/api/ota/aiPetFirmware.api'
 import { AiPetFirmwareIM, AiPetFirmwarePackageIM, AiPetFirmwareStatusEnum } from '@/model/ota'
 import { formSchema } from './info.data'
@@ -269,7 +269,7 @@ async function handleSubmit() {
 
 <style lang="scss" scoped>
 .dialog-content {
-	max-height: 68vh;
+	max-height: 70vh;
 	overflow-y: auto;
 	padding-right: 8px;
 }
