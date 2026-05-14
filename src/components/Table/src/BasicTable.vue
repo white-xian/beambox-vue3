@@ -952,6 +952,38 @@ defineExpose({ tableElRef, ...tableAction })
 				color: @text-color-base;
 				background-color: #12161d !important;
 			}
+			// Element Plus select 触发器（每页条数选择框）
+			.el-select__wrapper {
+				color: @text-color-base;
+				background-color: #12161d !important;
+				box-shadow: 0 0 0 1px var(--nn-border) inset !important;
+			}
+		}
+	}
+}
+
+// Element Plus Select 下拉弹层（teleport 到 body，不在 .@{prefixCls} 内部）
+[data-theme='dark'] {
+	.el-select-dropdown {
+		background-color: @component-background;
+		border: 1px solid var(--nn-border, #303030);
+
+		.el-select-dropdown__item {
+			color: @text-color-base;
+
+			&.is-selected {
+				color: @primary-color;
+			}
+
+			&.is-hovering,
+			&:hover {
+				background-color: #21262d;
+			}
+		}
+
+		.el-popper__arrow::before {
+			background-color: @component-background;
+			border: 1px solid var(--nn-border, #303030);
 		}
 	}
 }

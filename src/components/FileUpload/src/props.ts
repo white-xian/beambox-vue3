@@ -28,6 +28,11 @@ export const fileUploadProps = {
 		type: Number,
 		default: 10,
 	},
+	/** 文件大小单位 */
+	maxSizeUnit: {
+		type: String as PropType<'B' | 'KB' | 'MB' | 'GB'>,
+		default: 'MB',
+	},
 	/** 最大文件数量（仅多文件模式生效），Infinity 不限制 */
 	maxNumber: {
 		type: Number,
