@@ -425,6 +425,7 @@ html[data-theme='dark'] {
 			color: #484f58;
 		}
 	}
+
 	.single-file-upload__trigger {
 		&--card,
 		&--picture {
@@ -432,8 +433,23 @@ html[data-theme='dark'] {
 			background: #1a1a1a;
 			color: #e6edf3;
 		}
+
+		&--card:hover {
+			border-color: $primary-color;
+			background: #0d2137;
+		}
+
+		&--picture:hover {
+			border-color: $primary-color;
+			background: #0d2137;
+		}
+
 		&--text {
 			color: #58a6ff;
+		}
+
+		&-content {
+			color: #6e7681;
 		}
 	}
 }
