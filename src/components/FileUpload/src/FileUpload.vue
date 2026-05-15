@@ -1,4 +1,4 @@
-﻿<!-- @format -->
+<!-- @format -->
 
 <template>
 	<Modal v-model:open="modalOpen" :title="title" :width="560" :destroy-on-close="false" :mask-closable="false" centered wrap-class-name="file-upload-modal" @cancel="handleCancel">
@@ -306,15 +306,32 @@ async function handleCustomRequest(options: Recordable) {
 
 	try {
 		let response: any
+    // const response = await defHttp.uploadFile(
+		// 	{
+		// 		url: 'https://file.beambox.app/oss/upload',
+		// 		onUploadProgress: (progressEvent: any) => {
+		// 			if (progressEvent.lengthComputable && progressEvent.total > 0) {
+		// 				const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
+		// 				updateItemProgress(uid, percent)
+		// 			}
+		// 		},
+		// 	},
+		// 	{
+		// 		name: props.name,
+		// 		file: item.file!,
+		// 		filename: item.file?.name,
+		// 		data: { ...(props.uploadParams || {}) },
+		// 	},
+		// )
 		if (props.uploadApiUrl) {
 			response = await defHttp.uploadFile(
 				{
 					url: uploadUrl + props.uploadApiUrl,
-					timeout: 60 * 1000,
 					onUploadProgress: (progressEvent: any) => {
-						const total = progressEvent.total || file.size || 0
-						const percent = total ? Math.min(100, Math.round((progressEvent.loaded / total) * 100)) : 0
-						updateItemProgress(uid, percent)
+						if (progressEvent.lengthComputable && progressEvent.total > 0) {
+							const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
+							updateItemProgress(uid, percent)
+						}
 					},
 				},
 				{
@@ -333,9 +350,10 @@ async function handleCustomRequest(options: Recordable) {
 					data: { ...(props.uploadParams || {}) },
 				},
 				(progressEvent: any) => {
-					const total = progressEvent.total || file.size || 0
-					const percent = total ? Math.min(100, Math.round((progressEvent.loaded / total) * 100)) : 0
-					updateItemProgress(uid, percent)
+					if (progressEvent.lengthComputable && progressEvent.total > 0) {
+						const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
+						updateItemProgress(uid, percent)
+					}
 				},
 			)
 		} else {
