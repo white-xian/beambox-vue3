@@ -15,11 +15,15 @@ enum Api {
 export const fileUploadApi = (
   params: UploadFileParams,
   onUploadProgress: (progressEvent: AxiosProgressEvent) => void,
+  timeout?: number,
 ) =>
   defHttp.uploadFile<UploadIM>(
     {
       url: uploadUrl + Api.UPLOAD_FILE,
       onUploadProgress,
+      timeout: timeout ?? 0,
     },
     params,
   );
+
+

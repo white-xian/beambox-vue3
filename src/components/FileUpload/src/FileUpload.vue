@@ -114,6 +114,8 @@ const props = defineProps({
 	maxCount: { type: Number, default: 10 },
 	multiple: { type: Boolean, default: true },
 	disabled: { type: Boolean, default: false },
+	/** 上传超时时间，单位毫秒，默认 0 表示不限制 */
+	timeout: { type: Number, default: 0 },
 	uploadApiUrl: { type: String, default: '' },
 	name: { type: String, default: 'file' },
 	uploadParams: { type: Object as () => Recordable, default: () => ({}) },
@@ -327,10 +329,20 @@ async function handleCustomRequest(options: Recordable) {
 			response = await defHttp.uploadFile(
 				{
 					url: uploadUrl + props.uploadApiUrl,
+					timeout: props.timeout,
 					onUploadProgress: (progressEvent: any) => {
+						console.log('[FileUpload] progress event:', {
+							lengthComputable: progressEvent.lengthComputable,
+							loaded: progressEvent.loaded,
+							total: progressEvent.total,
+							event: progressEvent,
+						})
 						if (progressEvent.lengthComputable && progressEvent.total > 0) {
 							const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
+							console.log('[FileUpload] percent:', percent)
 							updateItemProgress(uid, percent)
+						} else {
+							console.warn('[FileUpload] progress 不可计算 — lengthComputable:', progressEvent.lengthComputable, 'total:', progressEvent.total)
 						}
 					},
 				},
@@ -350,11 +362,21 @@ async function handleCustomRequest(options: Recordable) {
 					data: { ...(props.uploadParams || {}) },
 				},
 				(progressEvent: any) => {
+					console.log('[FileUpload] progress event (api):', {
+						lengthComputable: progressEvent.lengthComputable,
+						loaded: progressEvent.loaded,
+						total: progressEvent.total,
+						event: progressEvent,
+					})
 					if (progressEvent.lengthComputable && progressEvent.total > 0) {
 						const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
+						console.log('[FileUpload] percent (api):', percent)
 						updateItemProgress(uid, percent)
+					} else {
+						console.warn('[FileUpload] progress 不可计算 (api) — lengthComputable:', progressEvent.lengthComputable, 'total:', progressEvent.total)
 					}
 				},
+				props.timeout,
 			)
 		} else {
 			throw new Error('uploadApiUrl 和 api 至少需要提供一个')
