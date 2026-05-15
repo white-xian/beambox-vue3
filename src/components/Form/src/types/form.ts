@@ -239,6 +239,10 @@ interface BaseFormSchema<T extends ComponentType = any> {
   dynamicRules?: (renderCallbackParams: RenderCallbackParams) => Rule[];
 
   valueFormat?: (arg: Partial<RenderCallbackParams> & { value: any }) => any;
+
+  // 上传文件大小限制（配合 uploadSlot / SingleFileUpload 使用）
+  maxSize?: number;
+  maxSizeUnit?: 'B' | 'KB' | 'MB' | 'GB';
 }
 
 export interface ComponentFormSchema<T extends ComponentType = any> extends BaseFormSchema<T> {
