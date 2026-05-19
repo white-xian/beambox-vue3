@@ -55,6 +55,8 @@ export default defineConfig(async (configEnv) => {
 					changeOrigin: true,
 					ws: true,
 					rewrite: rewriteProxy(baseApi),
+					timeout: 0, // 上传大文件时不限制代理超时
+					proxyTimeout: 0,
 				},
 				// 对象存储代理，避免开发环境跨域
 				'/proxy-bucket': {
