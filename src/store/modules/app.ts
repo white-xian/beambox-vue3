@@ -44,7 +44,6 @@ export const useAppStore = defineStore({
       return (
         state.darkMode ||
         localStorage.getItem(APP_DARK_MODE_KEY) ||
-        setting.menuSetting.theme ||
         darkMode
       );
     },
