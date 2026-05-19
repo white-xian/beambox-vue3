@@ -65,7 +65,7 @@
     watch,
   } from 'vue';
   import ImgUpload from './ImgUpload.vue';
-  import { plugins as defaultPlugins, toolbar as defaultToolbar } from './tinymce';
+  import { plugins as defaultPlugins, toolbar as defaultToolbar, appPlugins, appToolbar } from './tinymce';
   import { buildShortUUID } from '@/utils/core/IdUtil';
   import { bindHandlers } from './helper';
   import { onMountedOrActivated } from '@xueyi/hooks';
@@ -109,6 +109,11 @@
       type: Boolean,
       default: true,
     },
+    /** 内容类型：'pc' 为 PC Web 完整编辑器，'app' 为移动端 App 精简模式 */
+    contentType: {
+      type: String as PropType<'pc' | 'app'>,
+      default: 'pc',
+    },
   });
 
   const emit = defineEmits(['change', 'update:modelValue', 'inited', 'init-error']);
@@ -140,14 +145,28 @@
   const langName = 'zh_CN';
 
   const initOptions = computed((): RawEditorSettings => {
-    const { height, options, toolbar, plugins } = props;
+    const { height, options, toolbar, plugins, contentType } = props;
     const publicPath = import.meta.env.VITE_PUBLIC_PATH || '/';
-    return {
+    const isApp = contentType === 'app';
+
+    /** App 端内容样式：与输出 style 标签保持一致，编辑器内所见即所得 */
+    const appContentStyle = `
+      body { font-family: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Noto Sans SC', sans-serif; font-size: 16px; line-height: 1.6; color: #333; padding: 8px; -webkit-text-size-adjust: 100%; }
+      p { margin: 0 0 8px 0; }
+      blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid #ccc; color: #666; }
+      ul, ol { padding-left: 1.5em; margin: 4px 0; }
+      img { max-width: 100%; height: auto; }
+    `;
+
+    /** App 端字号格式 */
+    const appFontsizeFormats = '12px 14px 16px 18px 20px 24px';
+
+    const baseOptions: RawEditorSettings = {
       selector: `#${unref(tinymceId)}`,
       height,
-      toolbar,
-      menubar: 'file edit insert view format table',
-      plugins,
+      toolbar: isApp ? appToolbar : toolbar,
+      menubar: isApp ? false : 'file edit insert view format table',
+      plugins: isApp ? appPlugins : plugins,
       language_url: publicPath + 'resource/tinymce/langs/' + langName + '.js',
       language: langName,
       branding: false,
@@ -158,12 +177,15 @@
       skin: skinName.value,
       skin_url: publicPath + 'resource/tinymce/skins/ui/' + skinName.value,
       content_css: publicPath + 'resource/tinymce/skins/ui/' + skinName.value + '/content.min.css',
+      ...(isApp ? { content_style: appContentStyle, fontsize_formats: appFontsizeFormats } : {}),
       ...options,
       setup: (editor: Editor) => {
         editorRef.value = editor;
         editor.on('init', (e) => initSetup(e));
       },
     };
+
+    return baseOptions;
   });
 
   const disabled = computed(() => {
@@ -250,28 +272,55 @@
     if (!editor) {
       return;
     }
-    const value = props.modelValue || props.value || savedContent.value || '';
+    const rawValue = props.modelValue || props.value || savedContent.value || '';
+    const value = props.contentType === 'app' ? unwrapForApp(rawValue) : rawValue;
 
     editor.setContent(value);
     bindModelHandlers(editor);
     bindHandlers(e, attrs, unref(editorRef));
   }
 
+  /** 加载内容时剥离注入的 <style> 和包裹 div，避免重复嵌套 */
+  function unwrapForApp(html: string) {
+    if (!html) return '';
+    let result = html;
+    // 剥离注入的 <style> 标签
+    result = result.replace(/^<style>[^<]*<\/style>/, '');
+    // 循环剥离可能嵌套的包裹 div（旧版或多次编辑产生的）
+    const wrapStart = /^\s*<div\s+style="font-size:\s*1[246]p[tx];[^"]*">/;
+    const wrapEnd = /<\/div>\s*$/;
+    while (wrapStart.test(result) && wrapEnd.test(result)) {
+      result = result.replace(wrapStart, '').replace(wrapEnd, '');
+    }
+    return result.trim();
+  }
+
   function setValue(editor: Record<string, any>, val?: string, prevVal?: string) {
     if (!editor) return;
     // 兼容 resetFields 后 val 为 undefined 的场景，统一转为空字符串
     const strVal = typeof val === 'string' ? val : '';
+    const cleanVal = props.contentType === 'app' ? unwrapForApp(strVal) : strVal;
+    const currentContent = editor.getContent({ format: attrs.outputFormat });
     if (
       strVal !== prevVal &&
-      strVal !== editor.getContent({ format: attrs.outputFormat })
+      cleanVal !== currentContent
     ) {
-      editor.setContent(strVal);
+      editor.setContent(cleanVal);
     }
   }
 
   function bindModelHandlers(editor: any) {
     const modelEvents = attrs.modelEvents ? attrs.modelEvents : null;
     const normalizedEvents = Array.isArray(modelEvents) ? modelEvents.join(' ') : modelEvents;
+
+    /** App 端将默认样式注入为 <style> 标签，iOS/Android/PC WebView 均原生支持 */
+    const wrapForApp = (html: string) =>
+      `<style>body{font-size:16px;font-family:-apple-system,system-ui,'Segoe UI',Roboto,'Helvetica Neue','PingFang SC','Noto Sans SC',sans-serif;line-height:1.6;color:#333}p{margin:0 0 8px 0}blockquote{margin:8px 0;padding:4px 12px;border-left:3px solid #ccc;color:#666}ul,ol{padding-left:1.5em;margin:4px 0}img{max-width:100%;height:auto}</style>${html}`;
+
+    const getContent = () => {
+      const raw = editor.getContent({ format: attrs.outputFormat });
+      return props.contentType === 'app' ? wrapForApp(raw) : raw;
+    };
 
     watch(
       () => props.modelValue,
@@ -291,7 +340,7 @@
     );
 
     editor.on(normalizedEvents ? normalizedEvents : 'change keyup undo redo', () => {
-      const content = editor.getContent({ format: attrs.outputFormat });
+      const content = getContent();
       emit('update:modelValue', content);
       emit('change', content);
     });
