@@ -331,18 +331,9 @@ async function handleCustomRequest(options: Recordable) {
 					url: uploadUrl + props.uploadApiUrl,
 					timeout: props.timeout,
 					onUploadProgress: (progressEvent: any) => {
-						console.log('[FileUpload] progress event:', {
-							lengthComputable: progressEvent.lengthComputable,
-							loaded: progressEvent.loaded,
-							total: progressEvent.total,
-							event: progressEvent,
-						})
 						if (progressEvent.lengthComputable && progressEvent.total > 0) {
 							const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
-							console.log('[FileUpload] percent:', percent)
 							updateItemProgress(uid, percent)
-						} else {
-							console.warn('[FileUpload] progress 不可计算 — lengthComputable:', progressEvent.lengthComputable, 'total:', progressEvent.total)
 						}
 					},
 				},
@@ -362,18 +353,9 @@ async function handleCustomRequest(options: Recordable) {
 					data: { ...(props.uploadParams || {}) },
 				},
 				(progressEvent: any) => {
-					console.log('[FileUpload] progress event (api):', {
-						lengthComputable: progressEvent.lengthComputable,
-						loaded: progressEvent.loaded,
-						total: progressEvent.total,
-						event: progressEvent,
-					})
 					if (progressEvent.lengthComputable && progressEvent.total > 0) {
 						const percent = Math.min(99, Math.round((progressEvent.loaded / progressEvent.total) * 100))
-						console.log('[FileUpload] percent (api):', percent)
 						updateItemProgress(uid, percent)
-					} else {
-						console.warn('[FileUpload] progress 不可计算 (api) — lengthComputable:', progressEvent.lengthComputable, 'total:', progressEvent.total)
 					}
 				},
 				props.timeout,
