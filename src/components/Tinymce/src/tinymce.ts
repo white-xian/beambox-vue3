@@ -7,7 +7,18 @@ export const plugins = [
   'advlist anchor autolink autosave code codesample  directionality  fullscreen hr insertdatetime link lists media nonbreaking noneditable pagebreak paste preview print save searchreplace spellchecker tabfocus  template  textpattern visualblocks visualchars wordcount',
 ];
 
+/** App 端插件：只保留移动端有意义的 */
+export const appPlugins = [
+  'advlist autolink lists link paste hr',
+];
+
 export const toolbar = [
   'fontsizeselect lineheight searchreplace bold italic underline strikethrough alignleft aligncenter alignright outdent indent  blockquote undo redo removeformat subscript superscript code codesample',
   'hr bullist numlist link  preview anchor pagebreak insertdatetime media  forecolor backcolor fullscreen',
+];
+
+/** App 端工具栏：去除 PC 专用功能（全屏、预览、打印、代码、分页等） */
+export const appToolbar = [
+  'fontsizeselect bold italic underline forecolor backcolor removeformat',
+  'bullist numlist blockquote alignleft aligncenter alignright',
 ];

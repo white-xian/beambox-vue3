@@ -253,11 +253,13 @@ export const detailSchema: DescItem[] = [
   {
     label: '游戏简略',
     field: 'gameSummary',
+    render: (val) => (val ? h('div', { innerHTML: val }) : ''),
     span: 24,
   },
   {
     label: '游戏详情',
     field: 'gameContent',
+    render: (val) => (val ? h('div', { innerHTML: val }) : ''),
     span: 24,
   },
   {
