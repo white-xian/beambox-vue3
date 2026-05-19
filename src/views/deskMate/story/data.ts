@@ -162,6 +162,7 @@ export const detailSchema: DescItem[] = [
     label: '故事标题',
     field: 'storyTitle',
     span: 8,
+    render: (val) => (val ? h('div', { innerHTML: val }) : ''),
   },
   {
     label: '解锁等级',
@@ -189,6 +190,7 @@ export const detailSchema: DescItem[] = [
   {
     label: '故事内容',
     field: 'storyContent',
+    render: (val) => (val ? h('div', { innerHTML: val }) : ''),
     span: 24,
   },
   {
