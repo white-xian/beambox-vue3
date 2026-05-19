@@ -44,7 +44,11 @@ const getTitle = computed(() => (unref(isUpdate) ? '编辑人物关系' : '新�
 async function handleSubmit() {
   const values = await validate();
   if (!values) return;
-
+  if (values.tablesideId === values.relatedId) {
+    createMessage.error('角色关系不能关联自己');
+    return;
+  }
+  
   try {
     setModalProps({ confirmLoading: true });
     const payload = { ...values } as CharacterRelationshipsIM;
