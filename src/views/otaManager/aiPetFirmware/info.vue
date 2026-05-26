@@ -35,7 +35,7 @@
 								</Col>
 								<Col :span="8">
 									<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
-										<SingleFileUpload v-model:value="record.fileUrl" list-type="picture-card" :max-size="50" upload-api-url="/file/oss/upload" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
+										<SingleFileUpload v-model:value="record.fileUrl" list-type="picture-card" :max-size="150" upload-api-url="/file/oss/upload" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
 									</Form.Item>
 								</Col>
 							</Row>
