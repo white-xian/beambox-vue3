@@ -265,17 +265,31 @@ export const formSchema: FormSchema[] = [
 	},
 ]
 
+/** 渲染指定语言的等级图片 */
+function renderLevelImages(i18n: Record<string, Record<string, string>> | undefined, lang: string) {
+	const langData = i18n?.[lang]
+	if (!langData || typeof langData !== 'object' || !Object.keys(langData).length) return ''
+	return h('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap' } },
+		Object.entries(langData).map(([level, url]) =>
+			h('div', { key: level, style: { textAlign: 'center' } }, [
+				h('div', { style: { fontSize: '12px', marginBottom: '4px', color: '#909399' } }, `等级 ${level}`),
+				url ? h(Image, { src: url, style: { maxWidth: '80px', maxHeight: '80px', borderRadius: '8px', objectFit: 'cover' } }) : '',
+			])
+		)
+	)
+}
+
 /** 桌搭子角色基础信息详情描述项配置 */
 export const detailSchema: DescItem[] = [
 	{
 		label: '名称',
 		field: 'name',
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '特点',
 		field: 'features',
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '头像',
@@ -339,6 +353,42 @@ export const detailSchema: DescItem[] = [
 		label: '隐藏款',
 		field: 'isHidden',
 		render: (val) => (val === 1 ? '是' : '否'),
+		span: 24,
+	},
+	{
+		label: '中文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'zh'),
+		span: 24,
+	},
+	{
+		label: '英文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'en'),
+		span: 24,
+	},
+	{
+		label: '日文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'ja'),
+		span: 24,
+	},
+	{
+		label: '韩文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'ko'),
+		span: 24,
+	},
+	{
+		label: '俄文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'ru'),
+		span: 24,
+	},
+	{
+		label: '泰文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'th'),
 		span: 24,
 	},
 	{
