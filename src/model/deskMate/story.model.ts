@@ -17,7 +17,7 @@ export interface StoryIM extends BaseEntity {
   /** 故事图 */
   storyIllustrationUrl: string;
   /**未解锁故事图 */
-  loclStoryThumbnailUrl?: string;
+  lockStoryThumbnailUrl?: string;
 }
 
 /** 角色故事查询参数 */

@@ -133,7 +133,7 @@ export const formSchema: FormSchema[] = [
 		maxSizeUnit: 'KB',
 		maxSize: 200,
 		rules: [{ required: true, message: '请上传头像', trigger: 'change' }],
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'roleRelationshipUrl',
@@ -144,7 +144,7 @@ export const formSchema: FormSchema[] = [
 		maxSizeUnit: 'KB',
 		maxSize: 50,
 		rules: [{ required: true, message: '请上传圆形头像', trigger: 'change' }],
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'roleCardBackgroundUrl',
@@ -155,7 +155,7 @@ export const formSchema: FormSchema[] = [
 		maxSize: 500,
 		required: true,
 		rules: [{ required: true, message: '请上传角色卡背景', trigger: 'change' }],
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'hiddenUrl',
@@ -164,7 +164,7 @@ export const formSchema: FormSchema[] = [
 		slot: 'uploadSlot',
 		maxSizeUnit: 'KB',
 		maxSize: 50,
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'onlineModelUrl',
@@ -174,7 +174,7 @@ export const formSchema: FormSchema[] = [
 		required: true,
 		maxSizeUnit: 'KB',
 		maxSize: 200,
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'offlineModelUrl',
@@ -184,7 +184,7 @@ export const formSchema: FormSchema[] = [
 		required: true,
 		maxSizeUnit: 'KB',
 		maxSize: 200,
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'onlineBackgroundUrl',
@@ -194,7 +194,7 @@ export const formSchema: FormSchema[] = [
 		required: true,
 		maxSizeUnit: 'KB',
 		maxSize: 500,
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'offlineBackgroundUrl',
@@ -204,7 +204,7 @@ export const formSchema: FormSchema[] = [
 		required: true,
 		maxSizeUnit: 'KB',
 		maxSize: 500,
-		colProps: { xs: 24, md: 12 },
+		colProps: { xs: 24, sm: 12, md: 8, lg: 6 },
 	},
 	{
 		field: 'characterBackground',
@@ -265,80 +265,130 @@ export const formSchema: FormSchema[] = [
 	},
 ]
 
+/** 渲染指定语言的等级图片 */
+function renderLevelImages(i18n: Record<string, Record<string, string>> | undefined, lang: string) {
+	const langData = i18n?.[lang]
+	if (!langData || typeof langData !== 'object' || !Object.keys(langData).length) return ''
+	return h('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap' } },
+		Object.entries(langData).map(([level, url]) =>
+			h('div', { key: level, style: { textAlign: 'center' } }, [
+				h('div', { style: { fontSize: '12px', marginBottom: '4px', color: '#909399' } }, `等级 ${level}`),
+				url ? h(Image, { src: url, style: { maxWidth: '80px', maxHeight: '80px', borderRadius: '8px', objectFit: 'cover' } }) : '',
+			])
+		)
+	)
+}
+
 /** 桌搭子角色基础信息详情描述项配置 */
 export const detailSchema: DescItem[] = [
 	{
 		label: '名称',
 		field: 'name',
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '特点',
 		field: 'features',
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '头像',
 		field: 'roleCardAvatarUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '120px', maxHeight: '120px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '职业',
 		field: 'profession',
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '设备识别码',
 		field: 'matchRole',
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '角色圆形头像',
 		field: 'roleRelationshipUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '120px', maxHeight: '120px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '设备在线角色',
 		field: 'onlineModelUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '200px', maxHeight: '100px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '设备离线角色',
 		field: 'offlineModelUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '120px', maxHeight: '120px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '隐藏款头像',
 		field: 'hiddenUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '120px', maxHeight: '120px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '设备在线背景',
 		field: 'onlineBackgroundUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '200px', maxHeight: '100px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '设备离线背景',
 		field: 'offlineBackgroundUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '200px', maxHeight: '100px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '背景',
 		field: 'roleCardBackgroundUrl',
 		render: (val) => (val ? h('div', { style: { textAlign: 'center' } }, h(Image, { src: val, style: { maxWidth: '200px', maxHeight: '100px', borderRadius: '8px' } })) : ''),
-		span: 8,
+		span: 6,
 	},
 	{
 		label: '隐藏款',
 		field: 'isHidden',
 		render: (val) => (val === 1 ? '是' : '否'),
+		span: 24,
+	},
+	{
+		label: '中文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'zh'),
+		span: 24,
+	},
+	{
+		label: '英文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'en'),
+		span: 24,
+	},
+	{
+		label: '日文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'ja'),
+		span: 24,
+	},
+	{
+		label: '韩文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'ko'),
+		span: 24,
+	},
+	{
+		label: '俄文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'ru'),
+		span: 24,
+	},
+	{
+		label: '泰文-标签',
+		field: 'levelUrlI18n',
+		render: (val: Record<string, Record<string, string>>) => renderLevelImages(val, 'th'),
 		span: 24,
 	},
 	{

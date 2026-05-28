@@ -149,9 +149,9 @@
     const publicPath = import.meta.env.VITE_PUBLIC_PATH || '/';
     const isApp = contentType === 'app';
 
-    /** App 端内容样式：与输出 style 标签保持一致，编辑器内所见即所得 */
+    /** App 端内容样式 */
     const appContentStyle = `
-      body { font-family: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Noto Sans SC', sans-serif; font-size: 16px; line-height: 1.6; color: #333; padding: 8px; -webkit-text-size-adjust: 100%; }
+      body { font-family: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Noto Sans SC', sans-serif; font-size: 16px; line-height: 1.6; color: #333; background: #f5f5f5; padding: 8px; -webkit-text-size-adjust: 100%; }
       p { margin: 0 0 8px 0; }
       blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid #ccc; color: #666; }
       ul, ol { padding-left: 1.5em; margin: 4px 0; }
