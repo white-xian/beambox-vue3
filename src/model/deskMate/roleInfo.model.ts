@@ -36,6 +36,10 @@ export interface RoleInfoIM extends BaseEntity {
   onlineBackgroundUrl?: string;
   /** 设备离线背景URL */
   offlineBackgroundUrl?: string;
+  /** 等级URL（中文），键为 level_N，值为图片URL */
+  levelUrl: Record<string, string>;
+  /** 等级URL > 国际化，键为语言代码，值为等级URL映射 */
+  levelUrlI18n: Record<string, Record<string, string>>;
 }
 
 /** 桌搭子角色基础信息查询参数 */

@@ -121,7 +121,7 @@ export const formSchema: FormSchema[] = [
     colProps: { xs: 24, md: 12 },
   },
   {
-    field: 'loclStoryThumbnailUrl',
+    field: 'lockStoryThumbnailUrl',
     label: '未解锁故事图',
     component: 'Input',
     slot: 'uploadSlot',
@@ -183,7 +183,7 @@ export const detailSchema: DescItem[] = [
   },
   {
     label: '未解锁故事图',
-    field: 'loclStoryThumbnailUrl',
+    field: 'lockStoryThumbnailUrl',
     render: (val) => (val ? h(Image, { src: val, style: { width: '200px', height: '120px', borderRadius: '4px', objectFit: 'cover' } }) : ''),
     span: 8,
    },
