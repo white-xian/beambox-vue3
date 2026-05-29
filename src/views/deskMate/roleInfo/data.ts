@@ -19,6 +19,12 @@ export const columns: BasicColumn[] = [
 		width: 160,
 	},
 	{
+		title: '头像',
+		dataIndex: 'roleCardAvatarUrl',
+		width: 100,
+		customRender: ({ record }) => (record.roleCardAvatarUrl ? h(Image, { src: record.roleCardAvatarUrl, style: { width: '60px', height: '40px', borderRadius: '4px', objectFit: 'cover' } }) : ''),
+	},
+	{
 		title: '职业',
 		dataIndex: 'profession',
 		width: 160,
@@ -269,13 +275,10 @@ export const formSchema: FormSchema[] = [
 function renderLevelImages(i18n: Record<string, Record<string, string>> | undefined, lang: string) {
 	const langData = i18n?.[lang]
 	if (!langData || typeof langData !== 'object' || !Object.keys(langData).length) return ''
-	return h('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap' } },
-		Object.entries(langData).map(([level, url]) =>
-			h('div', { key: level, style: { textAlign: 'center' } }, [
-				h('div', { style: { fontSize: '12px', marginBottom: '4px', color: '#909399' } }, `等级 ${level}`),
-				url ? h(Image, { src: url, style: { maxWidth: '80px', maxHeight: '80px', borderRadius: '8px', objectFit: 'cover' } }) : '',
-			])
-		)
+	return h(
+		'div',
+		{ style: { display: 'flex', gap: '12px', flexWrap: 'wrap' } },
+		Object.entries(langData).map(([level, url]) => h('div', { key: level, style: { textAlign: 'center' } }, [h('div', { style: { fontSize: '12px', marginBottom: '4px', color: '#909399' } }, `等级 ${level}`), url ? h(Image, { src: url, style: { maxWidth: '80px', maxHeight: '80px', borderRadius: '8px', objectFit: 'cover' } }) : ''])),
 	)
 }
 
