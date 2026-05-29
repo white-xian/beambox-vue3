@@ -1,7 +1,7 @@
 <template>
 	<BasicModal v-bind="$attrs" :title="getTitle" @register="registerModal" width="1060px" :minHeight="450" :canFullscreen="true" :maskClosable="false" :centered="true" @ok="handleSubmit">
 		<div class="dialog-content">
-			<BasicForm @register="registerForm">
+			<BasicForm @register="registerForm" @field-value-change="handleFieldValueChange">
 				<template #uploadSlot="{ model, field, schema }">
 					<SingleFileUpload v-model:value="model[field]" list-type="picture-card" :max-size="schema.maxSize || 10" :max-size-unit="schema.maxSizeUnit || 'MB'" :show-help-text="false" :show-delete="true" upload-text="上传图片" />
 				</template>
@@ -55,6 +55,7 @@ import { Row, Col, Divider, Form, InputNumber } from 'ant-design-vue'
 const emit = defineEmits(['success', 'register'])
 const { createMessage } = useMessage()
 const isUpdate = ref(false)
+const isCopy = ref(false)
 const recordId = ref<string | undefined>()
 
 // ========= 等级URL 相关状态 =========
@@ -83,7 +84,7 @@ let levelIndex = 0
 
 // ====================================
 
-const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
+const [registerForm, { resetFields, setFieldsValue, validate, updateSchema, clearValidate }] = useForm({
 	labelWidth: 100,
 	schemas: formSchema,
 	showActionButtonGroup: false,
@@ -93,18 +94,29 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 	await resetFields()
 	setModalProps({ loading: true, confirmLoading: false })
 	isUpdate.value = !!data?.isUpdate
+	isCopy.value = !!data?.isCopy
 	recordId.value = undefined
 	levelList.value = []
 	levelIndex = 0
+	let initialIsHidden = 0
 
-	if (unref(isUpdate) && data?.record) {
+	if ((unref(isUpdate) || unref(isCopy)) && data?.record) {
 		const record = data.record as RoleInfoIM
 		recordId.value = record.id
+		initialIsHidden = record.isHidden ?? 0
 		// features 后端存储为、分割的字符串，前端标签选择器需要数组
-		const formData = {
+		const formData: Record<string, unknown> = {
 			...record,
 			features: record.features ? record.features.split('、') : [],
 		}
+
+		// 复制模式：清除名称、特点、设备识别码
+		if (unref(isCopy)) {
+			formData.name = ''
+			formData.features = []
+			formData.matchRole = ''
+		}
+
 		await setFieldsValue(formData)
 
 		// 填充等级URL（从 levelUrlI18n 提取各语言URL，兼容旧 levelUrl 数据）
@@ -154,9 +166,15 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 	}
 
 	setModalProps({ loading: false })
+
+	// 根据初始 isHidden 值更新 hiddenUrl 必填状态
+	await updateHiddenUrlRequired(initialIsHidden)
 })
 
-const getTitle = computed(() => (unref(isUpdate) ? '编辑桌搭子角色' : '新增桌搭子角色'))
+const getTitle = computed(() => {
+	if (unref(isCopy)) return '复制桌搭子角色'
+	return unref(isUpdate) ? '编辑桌搭子角色' : '新增桌搭子角色'
+})
 
 // ========= 等级URL 工具函数 =========
 
@@ -191,6 +209,36 @@ function addLevel() {
 /** 删除等级 */
 function removeLevel(index: number) {
 	levelList.value.splice(index, 1)
+}
+
+// ====================================
+
+// ========= 隐藏款头像动态必填 =========
+
+/** 监听表单字段变化，当 isHidden 切换时更新 hiddenUrl 必填状态 */
+async function handleFieldValueChange(key: string, value: unknown) {
+	if (key === 'isHidden') {
+		await updateHiddenUrlRequired(value as number)
+	}
+}
+
+/** 根据 isHidden 值更新 hiddenUrl 字段的 required 和 rules */
+async function updateHiddenUrlRequired(isHidden: number) {
+	if (isHidden === 1) {
+		await updateSchema({
+			field: 'hiddenUrl',
+			required: true,
+			rules: [{ required: true, message: '隐藏款启用时请上传隐藏款头像', trigger: 'change' }],
+		})
+	} else {
+		await updateSchema({
+			field: 'hiddenUrl',
+			required: false,
+			rules: [],
+		})
+		// 清除该字段的校验状态
+		await clearValidate('hiddenUrl')
+	}
 }
 
 // ====================================
