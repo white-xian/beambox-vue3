@@ -40,8 +40,9 @@
 	</el-form>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, reactive, ref, unref } from 'vue'
+// import { useRoute } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import { onKeyStroke } from '@vueuse/core'
 import Icon from '@/components/Icon/Icon.vue'
@@ -83,6 +84,7 @@ const captchaLoading = ref(false)
 const captchaLoadFailed = ref(false)
 const rememberMe = ref(localStorage.getItem(REMEMBER_ME_SESSION_CACHE_KEY) === 'true')
 const lastGetCodeAt = ref(0)
+const enterpriseName = ref('administrator')
 
 const formData = reactive({
 	userName: localStorage.getItem(USER_NAME_SESSION_CACHE_KEY) || '',
@@ -108,7 +110,7 @@ async function handleLogin() {
 	try {
 		loading.value = true
 		const userInfo = await userStore.login({
-			enterpriseName: 'administrator',
+			enterpriseName: enterpriseName.value,
 			userName: data.userName,
 			password: data.password,
 			code: data.code,
@@ -142,8 +144,8 @@ async function handleLogin() {
 			localStorage.removeItem(REMEMBER_ME_SESSION_CACHE_KEY)
 		}
 
-		formData.code = ''
-		loading.value = false
+	formData.code = ''
+	loading.value = false
 	}
 }
 
@@ -175,15 +177,15 @@ async function handleCodeImage({ showError = true, isRefresh = false } = {}) {
 	}
 }
 
-function resolveCaptchaErrorMessage(error, fallbackMessage) {
+function resolveCaptchaErrorMessage(error: any, fallbackMessage: string): string {
 	return resolveDisplayErrorMessage(error, fallbackMessage)
 }
 
-function isAsciiOnlyMessage(message) {
+function isAsciiOnlyMessage(message: string): boolean {
 	return Array.from(message).every((char) => char.charCodeAt(0) <= 127)
 }
 
-function resolveDisplayErrorMessage(error, fallbackMessage) {
+function resolveDisplayErrorMessage(error: any, fallbackMessage: string): string {
 	const responseMessages = [error?.response?.data?.msg, error?.response?.data?.message, error?.response?.data?.error?.message, error?.message]
 	for (const responseMessage of responseMessages) {
 		if (typeof responseMessage === 'string' && responseMessage.trim() && !isAsciiOnlyMessage(responseMessage.trim())) {
@@ -194,8 +196,17 @@ function resolveDisplayErrorMessage(error, fallbackMessage) {
 	return fallbackMessage
 }
 
+async function fetchEnterpriseByDomain() {
+	const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')
+	if (pathSegments[0] && pathSegments[0] !== '') {
+		enterpriseName.value = pathSegments[0]
+	}
+	// 无匹配时保持默认 'administrator'
+}
+
 onMounted(() => {
 	handleCodeImage()
+	fetchEnterpriseByDomain()
 })
 </script>
 
