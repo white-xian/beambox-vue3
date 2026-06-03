@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, unref } from 'vue'
-// import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import { onKeyStroke } from '@vueuse/core'
 import Icon from '@/components/Icon/Icon.vue'
@@ -197,10 +197,21 @@ function resolveDisplayErrorMessage(error: any, fallbackMessage: string): string
 }
 
 async function fetchEnterpriseByDomain() {
-	const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')
-	if (pathSegments[0] && pathSegments[0] !== '') {
-		enterpriseName.value = pathSegments[0]
+	// 优先：URL query 参数 ?tenant=xxx（开发/测试用）
+	const route = useRoute()
+	const queryTenant = route.query?.tenant as string
+	if (queryTenant) {
+		enterpriseName.value = queryTenant
+		return
 	}
+
+	// 其次：从子域名提取，如 popjoy.beambox.app → popjoy
+	const hostnameParts = window.location.hostname.split('.')
+	if (hostnameParts.length >= 3) {
+		enterpriseName.value = hostnameParts[0]
+		return
+	}
+
 	// 无匹配时保持默认 'administrator'
 }
 
