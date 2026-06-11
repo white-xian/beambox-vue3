@@ -14,10 +14,10 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '角色头像',
-    dataIndex: 'avatarUrl',
+    dataIndex: 'roleCardAvatarUrl',
     width: 100,
     customRender: ({ record }) =>
-      record.avatarUrl ? h(Image, { src: record.avatarUrl, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : '',
+      record.roleCardAvatarUrl ? h(Image, { src: record.roleCardAvatarUrl, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : '',
   },
   {
     title: '游戏名称',
@@ -217,7 +217,7 @@ export const detailSchema: DescItem[] = [
   },
   {
     label: '角色头像',
-    field: 'avatarUrl',
+    field: 'roleCardAvatarUrl',
     render: (val) => (val ? h(Image, { src: val, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : ''),
     span: 8,
   },
