@@ -8,11 +8,11 @@
       <ColumnHeightOutlined />
       <template #overlay>
         <Menu @click="handleTitleClick" selectable v-model:selectedKeys="selectedKeysRef">
+          <Menu.Item key="large">
+            <span>宽松</span>
+          </Menu.Item>
           <Menu.Item key="default">
             <span>默认</span>
-          </Menu.Item>
-          <Menu.Item key="middle">
-            <span>中等</span>
           </Menu.Item>
           <Menu.Item key="small">
             <span>紧凑</span>
@@ -25,11 +25,12 @@
 
 <script lang="ts" setup>
   import type { SizeType } from '../../types/table';
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref, useAttrs } from 'vue';
   import { Dropdown, Menu, type MenuProps, Tooltip } from 'ant-design-vue';
   import { ColumnHeightOutlined } from '@ant-design/icons-vue';
   import { useTableContext } from '../../hooks/useTableContext';
-  import { getPopupContainer } from '@/utils';
+  import { isFunction } from '@/utils/core/ObjectUtil';
+  import { getPopupContainer as getParentContainer } from '@/utils';
 
   import { useTableSettingStore } from '@/store/modules/tableSetting';
 
@@ -37,7 +38,12 @@
 
   defineOptions({ name: 'SizeSetting' });
 
+  const attrs = useAttrs();
   const table = useTableContext();
+
+  const getPopupContainer = () => {
+    return isFunction(attrs.getPopupContainer) ? attrs.getPopupContainer() : getParentContainer();
+  };
 
   const selectedKeysRef = ref<SizeType[]>([table.getSize()]);
 
