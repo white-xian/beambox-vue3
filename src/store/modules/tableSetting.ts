@@ -22,7 +22,10 @@ export const useTableSettingStore = defineStore({
     },
     //
     getTableSize(state) {
-      return state.setting?.size || 'middle';
+      const size = state.setting?.size;
+      // 兼容旧缓存值 'middle'，Element Plus 仅支持 'large' | 'default' | 'small'
+      if (size === 'middle') return 'default';
+      return size || 'default';
     },
     //
     getShowIndexColumn(state) {
