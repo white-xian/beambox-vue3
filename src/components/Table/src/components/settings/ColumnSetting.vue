@@ -554,11 +554,14 @@
         });
       }
 
-      // 默认值 缓存
-      defaultIsIndexColumnShow = table.getBindValues.value.showIndexColumn || false;
-      defaultRowSelection = table.getRowSelection();
-      defaultIsRowSelectionShow = !!defaultRowSelection; // 设置了 rowSelection 才出现
-      defaultColumnOptions = options;
+      // 默认值 缓存——只在首次初始化时记录，避免后续 re-init（如 watch 触发）
+      // 将已被 restore 修改过的列状态误当作"默认值"
+      if (!defaultColumnOptions.length) {
+        defaultIsIndexColumnShow = table.getBindValues.value.showIndexColumn || false;
+        defaultRowSelection = table.getRowSelection();
+        defaultIsRowSelectionShow = !!defaultRowSelection; // 设置了 rowSelection 才出现
+        defaultColumnOptions = options;
+      }
 
       // 默认值 赋值
       isIndexColumnShow.value = defaultIsIndexColumnShow;
