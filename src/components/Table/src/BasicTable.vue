@@ -10,7 +10,7 @@
 			<div :class="`${prefixCls}__header`" v-if="getHeaderRender">
 				<RenderNode :render="getHeaderRender" />
 			</div>
-			<ElTable ref="tableElRef" v-loading="getLoading" :data="getElementDataSource" :border="getBindValues.bordered" :stripe="getBindValues.striped" :row-key="getElementRowKey" :row-class-name="getElementRowClassName" :height="getElementTableHeight" :tree-props="getElementTreeProps" :default-expand-all="getBindValues.defaultExpandAllRows" :expand-row-keys="getElementExpandedRowKeys" :expand-on-click-row="!!getBindValues.expandRowByClick" :native-scrollbar="true" style="width: 100%" @selection-change="handleElementSelectionChange" @row-click="handleElementRowClick" @row-dblclick="handleElementRowDbClick" @row-contextmenu="handleElementRowContextmenu" @sort-change="handleElementSortChange" @expand-change="handleElementExpandChange">
+			<ElTable ref="tableElRef" v-loading="getLoading" :data="getElementDataSource" :size="getElementSize" :border="getBindValues.bordered" :stripe="getBindValues.striped" :row-key="getElementRowKey" :row-class-name="getElementRowClassName" :height="getElementTableHeight" :tree-props="getElementTreeProps" :default-expand-all="getBindValues.defaultExpandAllRows" :expand-row-keys="getElementExpandedRowKeys" :expand-on-click-row="!!getBindValues.expandRowByClick" :native-scrollbar="true" style="width: 100%" @selection-change="handleElementSelectionChange" @row-click="handleElementRowClick" @row-dblclick="handleElementRowDbClick" @row-contextmenu="handleElementRowContextmenu" @sort-change="handleElementSortChange" @expand-change="handleElementExpandChange">
 				<ElTableColumn v-if="getRowSelectionRef" type="selection" width="60" align="center" reserve-selection :fixed="getElementSelectionFixed" :selectable="getElementSelectable" />
 				<ElementTableColumn v-for="column in getElementColumns" :key="getElementColumnKey(column)" :column="column" :render-header="renderElementHeader" :render-cell="renderElementCell" />
 			</ElTable>
@@ -168,7 +168,7 @@ function handleTableChange(pagination, filters, sorter, extra) {
 	onChange && isFunction(onChange) && onChange(pagination, filters, sorter, extra)
 }
 
-const { getViewColumns, getColumns, setCacheColumnsByField, setCacheColumns, setColumnWidth, setColumns, getColumnsRef, getCacheColumns } = useColumns(getProps, getPaginationInfo)
+const { getViewColumns, getColumns, setCacheColumnsByField, setCacheColumns, setColumns, getColumnsRef, getCacheColumns } = useColumns(getProps, getPaginationInfo)
 
 const { getScrollRef, redoHeight } = useTableScroll(getProps, tableElRef, getColumnsRef, getRowSelectionRef, getDataSourceRef, wrapRef, formRef)
 
@@ -304,6 +304,10 @@ const getElementTableHeight = computed(() => {
 	// Element 表格的 height 是整表高度，需把真实表头高度加回去，body 才能保持原来的固定滚动高度。
 	return Number.isFinite(height) ? height + unref(elementHeaderHeightRef) : tableBodyHeight
 })
+
+// 直接使用 Element Plus 的 size 值，无需映射
+// Element Plus: 'large' | 'default' | 'small'
+const getElementSize = computed(() => unref(getBindValues).size)
 
 const getElementSelectionFixed = computed(() => {
 	const fixed = unref(getRowSelectionRef)?.fixed

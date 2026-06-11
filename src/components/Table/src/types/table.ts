@@ -90,7 +90,7 @@ export interface GetColumnsParams {
   sort?: boolean;
 }
 
-export type SizeType = 'default' | 'middle' | 'small' | 'large';
+export type SizeType = 'large' | 'default' | 'small';
 
 export interface TableActionType {
   reload: (opt?: FetchParams) => Promise<Recordable<any>[] | undefined>;
