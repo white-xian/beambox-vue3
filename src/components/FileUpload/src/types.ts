@@ -28,6 +28,8 @@ export interface FileUploadItem {
 	percent: number
 	/** 上传状态 */
 	status: UploadStatusEnum
+	/** 上传失败时的错误信息 */
+	errorMessage?: string
 	/** 原始 File 对象 */
 	file?: File
 	/** 接口原始响应 */

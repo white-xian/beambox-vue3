@@ -22,6 +22,7 @@ export const fileUploadApi = (
       url: uploadUrl + Api.UPLOAD_FILE,
       onUploadProgress,
       timeout: timeout ?? 0,
+      signal: params.signal,
     },
     params,
   );

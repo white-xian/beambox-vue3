@@ -58,7 +58,7 @@
 		</div>
 
 		<!-- ============ 上传弹窗 ============ -->
-		<FileUpload v-model:open="uploadModalOpen" title="文件上传" :accept="accept" :max-size="maxSize" :max-size-unit="maxSizeUnit" :max-count="remainingSlots" :multiple="true" :disabled="disabled" :upload-api-url="uploadApiUrl" :name="name" :upload-params="uploadParams" :result-field="resultField" :show-help-text="showHelpText" :help-text="helpText" @confirm="onUploadConfirm" />
+		<FileUpload v-model:open="uploadModalOpen" title="文件上传" :accept="accept" :max-size="fileUploadMaxSize" :max-count="remainingSlots" :disabled="disabled" :upload="fileUploadUpload" :name="name" :upload-params="uploadParams" :result-field="resultField" :help-text="fileUploadHelpText" @confirm="onUploadConfirm" @cancel="onUploadCancel" />
 	</div>
 </template>
 
@@ -80,11 +80,14 @@ defineOptions({ name: 'MultiFileUpload' })
 const props = defineProps({
 	value: { type: Array as () => string[], default: () => [] },
 	accept: { type: Array as () => string[], default: () => [] },
-	maxSize: { type: Number, default: 10 },
-	maxSizeUnit: { type: String as () => 'B' | 'KB' | 'MB' | 'GB', default: 'MB' },
+	maxSize: { type: [Number, String], default: 10 },
+	/** @deprecated 请使用 upload */
+	uploadApiUrl: { type: String, default: '' },
+	maxSizeUnit: { type: String, default: 'MB' },
 	maxCount: { type: Number, default: 10 },
 	disabled: { type: Boolean, default: false },
-	uploadApiUrl: { type: String, default: '' },
+	/** 上传接口路径或自定义上传函数 */
+	upload: { type: [String, Function], default: '' },
 	name: { type: String, default: 'file' },
 	uploadParams: { type: Object as () => Recordable, default: () => ({}) },
 	resultField: { type: String, default: '' },
@@ -125,6 +128,20 @@ let suppressSync = false
 
 // ===================== 计算属性 =====================
 
+/** 映射旧版 props 到新版 FileUpload 格式 */
+const fileUploadMaxSize = computed(() => {
+	if (typeof props.maxSize === 'string') return props.maxSize
+	return `${props.maxSize}${props.maxSizeUnit || 'MB'}`
+})
+const fileUploadUpload = computed(() => props.upload || props.uploadApiUrl || '/file/oss/upload')
+const fileUploadHelpText = computed(() => {
+	// showHelpText=false 时关闭提示
+	if (props.showHelpText === false) return false
+	// 有自定义 helpText 时使用
+	if (props.helpText) return props.helpText
+	return true
+})
+
 const maxReached = computed(() => doneCount.value >= props.maxCount)
 const remainingSlots = computed(() => Math.max(0, props.maxCount - doneCount.value))
 
@@ -160,6 +177,12 @@ function onUploadConfirm(items: FileUploadItem[]) {
 		items.forEach((item) => emit('upload-success', item))
 		notifyFormItem()
 	}
+}
+
+/** FileUpload 弹窗取消回调 */
+function onUploadCancel() {
+	// 取消时无需额外处理，v-model:open 已自动关闭弹窗
+	// 此钩子预留用于未来扩展（如埋点、日志）
 }
 
 async function handleRemove(item: FileUploadItem) {

@@ -69,7 +69,7 @@ export function createTableColumns(): FileBasicColumn[] {
   ];
 }
 
-export function createActionColumn(handleRemove: Function): BasicColumn {
+export function createActionColumn(handleRemove: Function): FileBasicColumn {
   return {
     width: 120,
     title: "操作",

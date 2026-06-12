@@ -53,6 +53,8 @@ export interface UploadFileParams {
   file: File | Blob;
   // file name
   filename?: string;
+  // AbortSignal for cancelling upload
+  signal?: AbortSignal;
 
   [key: string]: any;
 }

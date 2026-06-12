@@ -12,8 +12,8 @@ export function detectFileType(file: File | { type?: string; name: string }): Fi
 	// 优先按 MIME 判断
 	if (mime === GIF_TYPE) return FileTypeEnum.GIF
 	if (IMAGE_TYPES.some((t) => mime === t)) return FileTypeEnum.IMAGE
-	if (VIDEO_TYPES.some((t) => mime.startsWith('video/'))) return FileTypeEnum.VIDEO
-	if (AUDIO_TYPES.some((t) => mime.startsWith('audio/'))) return FileTypeEnum.AUDIO
+	if (VIDEO_TYPES.some(() => mime.startsWith('video/'))) return FileTypeEnum.VIDEO
+	if (AUDIO_TYPES.some(() => mime.startsWith('audio/'))) return FileTypeEnum.AUDIO
 
 	// 按后缀判断
 	if (/\.gif$/i.test(name)) return FileTypeEnum.GIF
@@ -166,7 +166,7 @@ export function createFileItem(file: File): FileUploadItem {
 /**
  * 从 url 字符串创建一个已上传完成的文件项
  */
-export function createFileItemFromUrl(url: string, index: number): FileUploadItem {
+export function createFileItemFromUrl(url: string, _index: number): FileUploadItem {
 	const name = getFileNameFromUrl(url)
 	// 从文件名推断类型
 	const fakeFile = { type: '', name }
@@ -182,4 +182,34 @@ export function createFileItemFromUrl(url: string, index: number): FileUploadIte
 		percent: 100,
 		status: 'done' as any,
 	}
+}
+
+/**
+ * 解析 maxSize prop
+ *
+ * 支持格式：
+ * - 数字 → 视为 MB（向后兼容）
+ * - 字符串 → '10MB' / '500KB' / '2GB' / '1024B'
+ *
+ * @returns { bytes: 字节数, unit: 单位字符串, display: 展示文字 }
+ */
+export function parseMaxSize(input: string | number): { bytes: number; unit: string; display: string } {
+	// 数字 → 兼容旧版用法，视为 MB
+	if (typeof input === 'number') {
+		const v = Number.isFinite(input) && input > 0 ? input : 10
+		return { bytes: v * 1024 * 1024, unit: 'MB', display: `${v}MB` }
+	}
+
+	const match = String(input).trim().match(/^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB)$/i)
+	if (match) {
+		const value = parseFloat(match[1])
+		const unit = match[2].toUpperCase()
+		const factor: Record<string, number> = { B: 1, KB: 1024, MB: 1024 * 1024, GB: 1024 * 1024 * 1024 }
+		if (factor[unit]) {
+			return { bytes: value * factor[unit], unit, display: `${value}${unit}` }
+		}
+	}
+
+	// 解析失败 → 兜底 10MB
+	return { bytes: 10 * 1024 * 1024, unit: 'MB', display: '10MB' }
 }
