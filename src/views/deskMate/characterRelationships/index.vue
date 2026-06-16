@@ -100,6 +100,7 @@ const [registerTable, { reload }] = useTable({
       state.ids = selectedRowKeys as string[];
       state.records = records;
       state.idNames = records.map((item) => `${item.name} ↔ ${item.relatedName}`).join(',');
+      console.log('selectedRowKeys', selectedRowKeys, 'selectRows', selectRows);
     },
   },
 });
