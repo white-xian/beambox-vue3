@@ -11,7 +11,6 @@
     :keyboard="false"
     class="upload-modal"
     :okButtonProps="getOkButtonProps"
-    :cancelButtonProps="{ disabled: isUploadingRef }"
   >
     <template #centerFooter>
       <a-button
@@ -51,7 +50,7 @@
 
 <script lang="ts" setup>
   import { computed, PropType, ref, toRefs, unref } from 'vue';
-  import { Alert, Upload } from 'ant-design-vue';
+  import { Alert, Upload, Modal } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
   // hooks
   import { useUploadType } from '../hooks/useUpload';
@@ -193,6 +192,7 @@
       const { data } = ret;
       if (data?.code === ResultEnum.SUCCESS) {
         item.status = UploadResultStatus.SUCCESS;
+        item.percent = 100;
         item.response = data;
         if (props.resultField) {
           // 适配预览组件而进行封装
@@ -279,13 +279,40 @@
 
   // 点击关闭：则所有操作不保存，包括上传的
   async function handleCloseFunc() {
-    if (!isUploadingRef.value) {
-      fileListRef.value = [];
-      return true;
-    } else {
-      createMessage.warning("请等待文件上传结束后操作");
-      return false;
+    const hasUploading = isUploadingRef.value
+    const hasSuccess = fileListRef.value.some((item) => item.status === UploadResultStatus.SUCCESS)
+
+    // 无任何有效数据 → 直接关闭
+    if (!hasUploading && !hasSuccess) {
+      fileListRef.value = []
+      return true
     }
+
+    // 有数据 → 弹确认框防止误操作
+    const parts: string[] = []
+    if (hasUploading) parts.push('有文件正在上传')
+    if (hasSuccess) parts.push('有已上传成功的文件尚未保存')
+    const content = parts.join('，') + '，关闭弹窗将丢失这些内容。'
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        Modal.confirm({
+          centered: true,
+          title: '确认取消',
+          content,
+          okText: '确定关闭',
+          okType: 'danger',
+          cancelText: '继续操作',
+          onOk: () => resolve(),
+          onCancel: () => reject(),
+        })
+      })
+    } catch {
+      return false
+    }
+    fileListRef.value = []
+    isUploadingRef.value = false
+    return true
   }
 </script>
 

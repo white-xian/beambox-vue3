@@ -151,7 +151,8 @@ export class VAxios {
       });
     }
 
-    return this.axiosInstance.request<T>({
+    // 显式保留 signal / cancelToken，避免被深拷贝丢失
+    const conf: AxiosRequestConfig = {
       ...config,
       method: 'POST',
       data: formData,
@@ -160,7 +161,13 @@ export class VAxios {
         // @ts-ignore
         ignoreCancelToken: true,
       },
-    });
+    };
+
+    if (config.signal) {
+      conf.signal = config.signal;
+    }
+
+    return this.axiosInstance.request<T>(conf);
   }
 
   // support form-data

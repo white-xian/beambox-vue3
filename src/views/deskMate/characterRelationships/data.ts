@@ -14,10 +14,10 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '本身角色头像',
-    dataIndex: 'avatarUrl',
+    dataIndex: 'roleCardAvatarUrl',
     width: 100,
     customRender: ({ record }) =>
-      record.avatarUrl ? h(Image, { src: record.avatarUrl, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : '',
+      record.roleCardAvatarUrl ? h(Image, { src: record.roleCardAvatarUrl, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : '',
   },
   {
     title: '关联角色名称',
@@ -26,10 +26,10 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '关联角色头像',
-    dataIndex: 'relatedAvatarUrl',
+    dataIndex: 'roleRelationshipUrl',
     width: 100,
     customRender: ({ record }) =>
-      record.relatedAvatarUrl ? h(Image, { src: record.relatedAvatarUrl, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : '',
+      record.roleRelationshipUrl ? h(Image, { src: record.roleRelationshipUrl, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : '',
   },
   {
     title: '说明',
@@ -143,7 +143,7 @@ export const detailSchema: DescItem[] = [
   },
   {
     label: '本身角色头像',
-    field: 'avatarUrl',
+    field: 'roleCardAvatarUrl',
     render: (val) => (val ? h(Image, { src: val, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : ''),
     span: 8,
   },
@@ -159,7 +159,7 @@ export const detailSchema: DescItem[] = [
   },
   {
     label: '关联角色头像',
-    field: 'relatedAvatarUrl',
+    field: 'roleRelationshipUrl',
     render: (val) => (val ? h(Image, { src: val, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : ''),
     span: 8,
   },

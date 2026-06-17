@@ -115,7 +115,7 @@
         } else if (typeof v == 'string') {
           values.push(v);
         }
-        fileList.value = values.map((item, i) => {
+        fileList.value = values.map((item) => {
           if (item && isString(item)) {
             return {
               uid: buildUUID(),
@@ -131,8 +131,8 @@
       emit('update:value', values);
       if (!isFirstRender.value) {
         emit('change', values);
-        isFirstRender.value = false;
       }
+      isFirstRender.value = false;
     },
     {
       immediate: true,

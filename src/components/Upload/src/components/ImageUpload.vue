@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, toRefs, watch } from 'vue';
+  import { ref, toRefs, watch, onBeforeUnmount } from 'vue';
   import { PlusOutlined } from '@ant-design/icons-vue';
   import type { UploadFile, UploadProps } from 'ant-design-vue';
   import { Modal, Upload } from 'ant-design-vue';
@@ -61,6 +61,13 @@
   const fileList = ref<UploadProps['fileList']>([]);
   const isLtMsg = ref<boolean>(true);
   const isActMsg = ref<boolean>(true);
+
+  // 存储 timer ID 用于组件卸载时清理
+  const timers = new Set<ReturnType<typeof setTimeout>>()
+  onBeforeUnmount(() => {
+    timers.forEach(clearTimeout)
+    timers.clear()
+  })
 
   watch(
     () => props.value,
@@ -148,14 +155,16 @@
       createMessage.error(`只能上传${accept}格式文件`);
       isActMsg.value = false;
       // 防止弹出多个错误提示
-      setTimeout(() => (isActMsg.value = true), 1000);
+      const tid = setTimeout(() => (isActMsg.value = true), 1000);
+      timers.add(tid)
     }
     const isLt = file.size / 1024 / 1024 > maxSize;
     if (isLt) {
       createMessage.error(`只能上传不超过${maxSize}MB的文件!`);
       isLtMsg.value = false;
       // 防止弹出多个错误提示
-      setTimeout(() => (isLtMsg.value = true), 1000);
+      const tid = setTimeout(() => (isLtMsg.value = true), 1000);
+      timers.add(tid)
     }
     return (isAct && !isLt) || Upload.LIST_IGNORE;
   };

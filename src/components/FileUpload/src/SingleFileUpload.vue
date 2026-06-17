@@ -65,7 +65,7 @@
 		</template>
 
 		<!-- ============ 上传弹窗 ============ -->
-		<FileUpload v-model:open="uploadModalOpen" title="文件上传" :accept="accept" :max-size="maxSize" :max-size-unit="maxSizeUnit" :max-count="1" :multiple="false" :disabled="disabled" :upload-api-url="uploadApiUrl" :name="name" :upload-params="uploadParams" :result-field="resultField" :show-help-text="true" @confirm="onUploadConfirm" />
+		<FileUpload v-model:open="uploadModalOpen" title="文件上传" :accept="accept" :max-size="fileUploadMaxSize" :max-count="1" :disabled="disabled" :upload="fileUploadUpload" :name="name" :upload-params="uploadParams" :result-field="resultField" @confirm="onUploadConfirm" @cancel="onUploadCancel" />
 	</div>
 </template>
 
@@ -88,10 +88,13 @@ const props = defineProps({
 	value: { type: String, default: '' },
 	listType: { type: String as () => ListType, default: 'picture-card' },
 	accept: { type: Array as () => string[], default: () => [] },
-	maxSize: { type: Number, default: 10 },
-	maxSizeUnit: { type: String as () => 'B' | 'KB' | 'MB' | 'GB', default: 'MB' },
-	disabled: { type: Boolean, default: false },
+	maxSize: { type: [Number, String], default: 10 },
+	/** @deprecated 请使用 upload */
 	uploadApiUrl: { type: String, default: '' },
+	maxSizeUnit: { type: String, default: 'MB' },
+	disabled: { type: Boolean, default: false },
+	/** 上传接口路径或自定义上传函数 */
+	upload: { type: [String, Function], default: '' },
 	name: { type: String, default: 'file' },
 	uploadParams: { type: Object as () => Recordable, default: () => ({}) },
 	resultField: { type: String, default: '' },
@@ -131,6 +134,14 @@ const uploadModalOpen = ref(false)
 let suppressSync = false
 
 // ===================== 计算属性 =====================
+
+/** 映射旧版 props 到新版 FileUpload 格式 */
+const fileUploadMaxSize = computed(() => {
+	if (typeof props.maxSize === 'string') return props.maxSize
+	return `${props.maxSize}${props.maxSizeUnit || 'MB'}`
+})
+/** upload prop 优先，fallback 到旧的 uploadApiUrl */
+const fileUploadUpload = computed(() => props.upload || props.uploadApiUrl || '/file/oss/upload')
 
 const triggerClass = computed(() => ({
 	'single-file-upload__trigger--card': props.listType === 'picture-card',
@@ -172,6 +183,12 @@ function onUploadConfirm(items: FileUploadItem[]) {
 		emit('upload-success', items[0])
 		notifyFormItem()
 	}
+}
+
+/** FileUpload 弹窗取消回调 */
+function onUploadCancel() {
+	// 取消时无需额外处理，v-model:open 已自动关闭弹窗
+	// 此钩子预留用于未来扩展（如埋点、日志）
 }
 
 async function handleRemove() {

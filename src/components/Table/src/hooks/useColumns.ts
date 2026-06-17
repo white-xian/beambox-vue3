@@ -168,7 +168,7 @@ export function useColumns(
 
     const columns = cloneDeep(viewColumns);
     return columns
-      .filter((column) => hasPermission(column.auth) && isIfShow(column))
+      .filter((column) => hasPermission(column.auth) && isIfShow(column) && !column.defaultHidden)
       .map((column) => {
         // Support table multiple header editable
         if (column.children?.length) {
