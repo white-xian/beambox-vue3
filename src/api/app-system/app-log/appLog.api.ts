@@ -1,4 +1,4 @@
-import { AppLogPPM, AppLogLM } from '@/model/appSystem/appLog'
+import { AppLogPPM, AppLogLM } from '@/model/app-system/app-log'
 import { defHttp } from '@/utils/http/axios'
 import dayjs from 'dayjs'
 

@@ -1,4 +1,4 @@
-import { StoryIM, StoryLM, StoryPPM } from '@/model/deskMate';
+import { StoryIM, StoryLM, StoryPPM } from '@/model/desk-mate';
 import { defHttp } from '@/utils/http/axios';
 
 /** 角色故事接口基础路径 */

@@ -64,7 +64,7 @@ export const searchFormSchema: FormSchema[] = [
 		field: 'tablesideId',
 		component: 'ApiSelect',
 		componentProps: {
-			api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+			api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
 			labelField: 'name',
 			valueField: 'id',
 			showSearch: true,

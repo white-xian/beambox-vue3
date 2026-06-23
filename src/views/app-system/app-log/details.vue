@@ -9,7 +9,7 @@ import { ref } from 'vue'
 import { Description, useDescription } from '@/components/Description'
 import { BasicDrawer, useDrawerInner } from '@/components/Drawer'
 import { DescItemSizeEnum } from '@/enums'
-import { AppLogIM } from '@/model/appSystem/appLog'
+import { AppLogIM } from '@/model/app-system/app-log'
 import { detailSchema } from './data'
 
 const getTitle = ref('APP日志详情')

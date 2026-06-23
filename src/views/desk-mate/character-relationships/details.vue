@@ -9,7 +9,7 @@ import { ref } from 'vue';
 import { Description, useDescription } from '@/components/Description';
 import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 import { DescItemSizeEnum } from '@/enums';
-import { CharacterRelationshipsLM } from '@/model/deskMate';
+import { CharacterRelationshipsLM } from '@/model/desk-mate';
 import { detailSchema } from './data';
 
 const getTitle = ref('人物关系详情');

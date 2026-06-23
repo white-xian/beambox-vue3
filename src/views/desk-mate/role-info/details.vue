@@ -9,7 +9,7 @@ import { ref } from 'vue';
 import { Description, useDescription } from '@/components/Description';
 import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 import { DescItemSizeEnum } from '@/enums';
-import { RoleInfoIM } from '@/model/deskMate';
+import { RoleInfoIM } from '@/model/desk-mate';
 import { detailSchema } from './data';
 
 const getTitle = ref('桌搭子角色详情');

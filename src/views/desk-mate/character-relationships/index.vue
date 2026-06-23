@@ -38,14 +38,14 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue';
-import { deleteCharacterRelationshipsApi, listCharacterRelationshipsApi } from '@/api/deskMate/characterRelationships.api';
-import { deskMateCharacterRelationshipsAuth } from '@/auth/deskMate';
+import { deleteCharacterRelationshipsApi, listCharacterRelationshipsApi } from '@/api/desk-mate/characterRelationships.api';
+import { deskMateCharacterRelationshipsAuth } from '@/auth/desk-mate';
 import { BasicTable, TableAction, useTable } from '@/components/Table';
 import { useDrawer } from '@/components/Drawer';
 import { useModal } from '@/components/Modal';
 import { IconEnum } from '@/enums';
 import { useMessage } from '@/hooks/web/useMessage';
-import { CharacterRelationshipsLM } from '@/model/deskMate';
+import { CharacterRelationshipsLM } from '@/model/desk-mate';
 import { columns, searchFormSchema } from './data';
 import Info from './info.vue';
 import Details from './details.vue';

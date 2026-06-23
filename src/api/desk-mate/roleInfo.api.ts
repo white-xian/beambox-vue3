@@ -1,4 +1,4 @@
-import { RoleInfoIM, RoleInfoLM, RoleInfoOptionIM, RoleInfoPPM } from '@/model/deskMate';
+import { RoleInfoIM, RoleInfoLM, RoleInfoOptionIM, RoleInfoPPM } from '@/model/desk-mate';
 import { defHttp } from '@/utils/http/axios';
 
 /** 桌搭子角色基础信息接口基础路径 */

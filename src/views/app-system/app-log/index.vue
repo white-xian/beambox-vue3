@@ -19,12 +19,12 @@
 </template>
 
 <script setup lang="ts">
-import { listAppLogApi } from '@/api/appSystem/appLog/appLog.api'
-import { appLogAuth } from '@/auth/appSystem/appLog'
+import { listAppLogApi } from '@/api/app-system/app-log/appLog.api'
+import { appLogAuth } from '@/auth/app-system/app-log'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { useDrawer } from '@/components/Drawer'
 import { IconEnum } from '@/enums'
-import { AppLogIM } from '@/model/appSystem/appLog'
+import { AppLogIM } from '@/model/app-system/app-log'
 import { columns, searchFormSchema } from './data'
 import Details from './details.vue'
 

@@ -1,4 +1,4 @@
-import { GameRecordsIM, GameRecordsLM, GameRecordsPPM } from '@/model/deskMate';
+import { GameRecordsIM, GameRecordsLM, GameRecordsPPM } from '@/model/desk-mate';
 import { defHttp } from '@/utils/http/axios';
 
 /** 游戏记录接口基础路径 */

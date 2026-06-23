@@ -22,8 +22,8 @@ import { BasicModal, useModalInner } from '@/components/Modal';
 import { BasicForm, useForm } from '@/components/Form';
 import { useMessage } from '@/hooks/web/useMessage';
 import { SingleFileUpload } from '@/components/FileUpload';
-import { addStoryApi, updateStoryApi } from '@/api/deskMate/story.api';
-import { StoryIM } from '@/model/deskMate';
+import { addStoryApi, updateStoryApi } from '@/api/desk-mate/story.api';
+import { StoryIM } from '@/model/desk-mate';
 import { formSchema } from './data';
 
 const emit = defineEmits(['success', 'register']);

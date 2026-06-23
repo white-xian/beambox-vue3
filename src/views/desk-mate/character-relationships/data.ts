@@ -5,7 +5,7 @@ import { h } from 'vue';
 import { Image } from 'ant-design-vue';
 import { Tinymce } from '@/components/Tinymce';
 
-/** 人物关系列表列配置 */
+/** 人物关系列表列配�?*/
 export const columns: BasicColumn[] = [
   {
     title: '本身角色名称',
@@ -55,7 +55,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'tablesideId',
     component: 'ApiSelect',
     componentProps: {
-      api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+      api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
       labelField: 'name',
       valueField: 'id',
       placeholder: '请选择本身角色',
@@ -67,7 +67,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'relatedId',
     component: 'ApiSelect',
     componentProps: {
-      api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+      api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
       labelField: 'name',
       valueField: 'id',
       placeholder: '请选择关联角色',
@@ -89,7 +89,7 @@ export const formSchema: FormSchema[] = [
     label: '本身角色',
     component: 'ApiSelect',
     componentProps: {
-      api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+      api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
       resultField: 'data',
       labelField: 'name',
       valueField: 'id',
@@ -104,7 +104,7 @@ export const formSchema: FormSchema[] = [
     label: '关联角色',
     component: 'ApiSelect',
     componentProps: {
-      api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+      api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
       resultField: 'data',
       labelField: 'name',
       valueField: 'id',
@@ -129,12 +129,12 @@ export const formSchema: FormSchema[] = [
       });
     },
     required: true,
-    rules: [{ required: true, message: '请输入说明', trigger: 'blur' }],
+    rules: [{ required: true, message: '请输入说�?, trigger: 'blur' }],
     colProps: { span: 24 },
   },
 ];
 
-/** 人物关系详情描述项配置 */
+/** 人物关系详情描述项配�?*/
 export const detailSchema: DescItem[] = [
   {
     label: '本身角色名称',

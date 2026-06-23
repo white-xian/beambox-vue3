@@ -9,8 +9,8 @@ import { computed, ref, unref } from 'vue';
 import { BasicModal, useModalInner } from '@/components/Modal';
 import { BasicForm, useForm } from '@/components/Form';
 import { useMessage } from '@/hooks/web/useMessage';
-import { addCharacterRelationshipsApi, updateCharacterRelationshipsApi } from '@/api/deskMate/characterRelationships.api';
-import { CharacterRelationshipsIM } from '@/model/deskMate';
+import { addCharacterRelationshipsApi, updateCharacterRelationshipsApi } from '@/api/desk-mate/characterRelationships.api';
+import { CharacterRelationshipsIM } from '@/model/desk-mate';
 import { formSchema } from './data';
 
 const emit = defineEmits(['success', 'register']);

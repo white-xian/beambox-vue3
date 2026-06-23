@@ -2,7 +2,7 @@ import {
   CharacterRelationshipsIM,
   CharacterRelationshipsLM,
   CharacterRelationshipsPPM,
-} from '@/model/deskMate';
+} from '@/model/desk-mate';
 import { defHttp } from '@/utils/http/axios';
 
 /** 人物关系接口基础路径 */

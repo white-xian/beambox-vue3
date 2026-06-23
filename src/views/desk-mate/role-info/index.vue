@@ -44,14 +44,14 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { deleteRoleInfoApi, listRoleInfoApi } from '@/api/deskMate/roleInfo.api'
-import { deskMateRoleInfoAuth } from '@/auth/deskMate'
+import { deleteRoleInfoApi, listRoleInfoApi } from '@/api/desk-mate/roleInfo.api'
+import { deskMateRoleInfoAuth } from '@/auth/desk-mate'
 import { BasicTable, TableAction, useTable } from '@/components/Table'
 import { useDrawer } from '@/components/Drawer'
 import { useModal } from '@/components/Modal'
 import { IconEnum } from '@/enums'
 import { useMessage } from '@/hooks/web/useMessage'
-import { RoleInfoIM } from '@/model/deskMate'
+import { RoleInfoIM } from '@/model/desk-mate'
 import { columns, searchFormSchema } from './data'
 import Info from './info.vue'
 import Details from './details.vue'

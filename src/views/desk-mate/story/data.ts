@@ -50,7 +50,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'tablesideId',
     component: 'ApiSelect',
     componentProps: {
-      api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+      api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
       labelField: 'name',
       valueField: 'id',
       placeholder: '请选择故事角色',
@@ -72,7 +72,7 @@ export const formSchema: FormSchema[] = [
     label: '故事角色',
     component: 'ApiSelect',
     componentProps: {
-      api: () => import('@/api/deskMate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
+      api: () => import('@/api/desk-mate/roleInfo.api').then((m) => m.getRoleInfoOptionsApi()),
       resultField: 'data',
       labelField: 'name',
       valueField: 'id',
