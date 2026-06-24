@@ -2,10 +2,10 @@ import type { AppRouteModule } from '@/router/types';
 import { LAYOUT } from '@/router/constant';
 
 const userCenter: AppRouteModule = {
-  path: '/userCenter',
+  path: '/user-center',
   name: 'UserCenter',
   component: LAYOUT,
-  redirect: '/userCenter/index',
+  redirect: '/user-center/index',
   meta: {
     hideChildrenInMenu: true,
     icon: 'simple-icons:aboutdotme',
@@ -17,7 +17,7 @@ const userCenter: AppRouteModule = {
     {
       path: 'index',
       name: 'AboutPage',
-      component: () => import('@/views/sys/userCenter/index.vue'),
+      component: () => import('@/views/sys/user-center/index.vue'),
       meta: {
         title: "个人中心",
         icon: 'simple-icons:aboutdotme',

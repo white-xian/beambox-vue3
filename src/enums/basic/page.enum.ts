@@ -3,8 +3,8 @@ export enum PageEnum {
   BASE_LOGIN = '/login',
   // basic home path
   BASE_HOME = '/dashboard',
-  // userCenter path
-  USER_CENTER = '/userCenter',
+  // user-center path
+  USER_CENTER = '/user-center',
   // enterpriseCenter path
   ENTERPRISE_CENTER = '/enterpriseCenter',
   // error page path
