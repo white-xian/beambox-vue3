@@ -137,6 +137,7 @@ function createPackage(): PackageFormItem {
 		fileName: '',
 		fileUrl: '',
 		fileSize: '',
+    domesticAddress:''
 	}
 }
 
@@ -190,11 +191,13 @@ function getVersionCodeByName(value: string) {
 	return versionCode ? Number(versionCode) : undefined
 }
 
-/** FileUpload 上传成功后，将文件名和大小同步到附属包表单项 */
-function onPackageUploadSuccess(record: PackageFormItem, uploadItem: { name: string; size: number; url: string }) {
-	record.fileName = uploadItem.name || ''
-	record.fileUrl = uploadItem.url || ''
-	record.fileSize = String(uploadItem.size || '')
+/** FileUpload 上传成功，直接从后端原始返回值中取字段 */
+function onPackageUploadSuccess(record: PackageFormItem, uploadItem: { response?: Recordable }) {
+	const res = uploadItem.response || {}
+	record.fileName = res.fileName || ''
+	record.fileUrl = res.fileUrl || res.domesticAddress || ''
+	record.fileSize = String(res.fileSize || '')
+	record.domesticAddress = res.domesticAddress || ''
 }
 
 /** 构造后端新增/更新接口需要的 payload */

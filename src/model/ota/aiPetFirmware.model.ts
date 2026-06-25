@@ -26,6 +26,8 @@ export interface AiPetFirmwarePackageIM extends BaseEntity {
   fileUrl: string;
   /** 固件文件大小，单位由后端返回值决定 */
   fileSize: string;
+  /** 固件文件远程地址 */
+  domesticAddress: string;
 }
 
 /** AI 宠物固件 OTA 主版本模型 */

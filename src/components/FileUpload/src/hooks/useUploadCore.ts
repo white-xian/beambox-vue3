@@ -248,12 +248,9 @@ export function useUploadCore(options: UploadCoreOptions = {}) {
 			}
 
 			const result = normalizeUploadResponse(response, file, options.resultField)
-			if (!result.url) {
-				throw new Error('上传接口未返回文件地址')
-			}
 
 			// 6. 生成缩略图（图片类）
-			let thumbUrl: string | undefined = result.url
+			let thumbUrl: string | undefined = result.url || undefined
 			if (isImageLike(fileType)) {
 				try {
 					thumbUrl = await readFileAsDataUrl(file)
@@ -262,15 +259,16 @@ export function useUploadCore(options: UploadCoreOptions = {}) {
 				}
 			}
 
-			// 7. 更新为完成状态
+			// 7. 更新为完成状态 — url/name/size 为 best-effort，业务侧优先从 response 取原始数据
 			const doneItem: FileUploadItem = {
 				...item,
-				url: result.url,
+				url: result.url || '',
 				name: result.name || item.name,
 				size: Number(result.size) || item.size,
 				thumbUrl,
 				status: UploadStatusEnum.DONE,
 				percent: 100,
+				response: data,
 			}
 
 			// 8. 从进行中移到已完成
