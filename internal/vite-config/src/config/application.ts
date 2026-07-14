@@ -62,83 +62,101 @@ function defineApplicationConfig(defineOptions: DefineOptions = {}) {
           output: {
             // 入口文件名
             entryFileNames: 'assets/entry/[name]-[hash].js',
+            // 提升共享传递依赖，减少重复代码
+            hoistTransitiveImports: true,
+            // 使用 ES2015 语法输出（目标浏览器已支持），更小体积
+            generatedCode: 'es2015',
+            // 合并小于 20KB 的业务 chunk，进一步减少文件碎片
+            experimentalMinChunkSize: 20000,
             // 使用函数式 manualChunks 将 node_modules 按库分组
             // 避免生成数百个微小 chunk 文件，减少磁盘 I/O 压力
+            // 注意：返回 undefined 让 Rollup 自行处理未匹配模块，避免循环依赖
             manualChunks(id) {
               if (!id.includes('node_modules')) return;
 
+              // ⚠️ 检查顺序很重要：@vueuse 必须在 @vue 之前
+              // 因为 '@vueuse' 是 '@vue' 的子串，会误匹配
+              if (id.includes('node_modules/@vueuse')) {
+                return 'vueuse';
+              }
+
               // Vue 生态核心
-              if (id.includes('node_modules/vue') ||
-                  id.includes('node_modules/@vue') ||
-                  id.includes('node_modules/pinia') ||
-                  id.includes('node_modules/vue-router')) {
+              // vue/ 匹配 vue 核心库，@vue/ 匹配 @vue/shared、@vue/runtime-core 等作用域包
+              if (id.includes('node_modules/vue/') ||
+                  id.includes('node_modules/@vue/') ||
+                  id.includes('node_modules/pinia/') ||
+                  id.includes('node_modules/vue-router/')) {
                 return 'vue-ecosystem';
               }
 
               // Ant Design Vue
               if (id.includes('node_modules/ant-design-vue') ||
-                  id.includes('node_modules/@ant-design')) {
+                  id.includes('node_modules/@ant-design/')) {
                 return 'antd';
               }
 
               // Element Plus
               if (id.includes('node_modules/element-plus') ||
-                  id.includes('node_modules/@element-plus')) {
+                  id.includes('node_modules/@element-plus/')) {
                 return 'element-plus';
               }
 
-              // ECharts + ZRender（数据可视化核心）
-              if (id.includes('node_modules/echarts') ||
-                  id.includes('node_modules/zrender')) {
+              // ECharts + ZRender
+              if (id.includes('node_modules/echarts/') ||
+                  id.includes('node_modules/zrender/')) {
                 return 'echarts';
               }
 
-              // CodeMirror（将全部语言模式合并，避免 50+ 个独立文件）
-              if (id.includes('node_modules/codemirror')) {
+              // CodeMirror（将全部语言模式合并）
+              if (id.includes('node_modules/codemirror/')) {
                 return 'codemirror';
               }
 
-              // ExcelJS（大体积独立库）
-              if (id.includes('node_modules/exceljs')) {
+              // ExcelJS
+              if (id.includes('node_modules/exceljs/')) {
                 return 'exceljs';
               }
 
               // LogicFlow 流程图
-              if (id.includes('node_modules/@logicflow')) {
+              if (id.includes('node_modules/@logicflow/')) {
                 return 'logicflow';
               }
 
-              // VueUse 工具集
-              if (id.includes('node_modules/@vueuse')) {
-                return 'vueuse';
-              }
-
               // Lodash
-              if (id.includes('node_modules/lodash-es')) {
+              if (id.includes('node_modules/lodash-es/')) {
                 return 'lodash';
               }
 
               // 其余中小型通用依赖合并
-              if (id.includes('node_modules/@iconify') ||
-                  id.includes('node_modules/@zxcvbn-ts') ||
-                  id.includes('node_modules/crypto-js') ||
-                  id.includes('node_modules/dayjs') ||
-                  id.includes('node_modules/axios') ||
-                  id.includes('node_modules/qs') ||
-                  id.includes('node_modules/sortablejs') ||
-                  id.includes('node_modules/html2canvas') ||
-                  id.includes('node_modules/cropperjs') ||
-                  id.includes('node_modules/qrcode') ||
-                  id.includes('node_modules/nprogress') ||
-                  id.includes('node_modules/showdown') ||
-                  id.includes('node_modules/print-js') ||
-                  id.includes('node_modules/path-to-regexp') ||
-                  id.includes('node_modules/resize-observer-polyfill')) {
+              if (id.includes('node_modules/@iconify/') ||
+                  id.includes('node_modules/@zxcvbn-ts/') ||
+                  id.includes('node_modules/crypto-js/') ||
+                  id.includes('node_modules/dayjs/') ||
+                  id.includes('node_modules/axios/') ||
+                  id.includes('node_modules/qs/') ||
+                  id.includes('node_modules/sortablejs/') ||
+                  id.includes('node_modules/html2canvas/') ||
+                  id.includes('node_modules/cropperjs/') ||
+                  id.includes('node_modules/qrcode/') ||
+                  id.includes('node_modules/nprogress/') ||
+                  id.includes('node_modules/showdown/') ||
+                  id.includes('node_modules/print-js/') ||
+                  id.includes('node_modules/path-to-regexp/') ||
+                  id.includes('node_modules/resize-observer-polyfill/') ||
+                  id.includes('node_modules/xlsx/') ||
+                  id.includes('node_modules/xe-utils/') ||
+                  id.includes('node_modules/vue-draggable-plus/') ||
+                  id.includes('node_modules/vue-json-pretty/')) {
                 return 'vendor-common';
               }
 
-              // 兜底：其余 node_modules
-              return 'vendor';
+              // VxeTable 系列
+              if (id.includes('node_modules/vxe-pc-ui/') ||
+                  id.includes('node_modules/vxe-table/')) {
+                return 'vxe-table';
+              }
+
+              // 不返回兜底 chunk，交给 Rollup 自动处理，避免循环依赖
             },
           },
         },
