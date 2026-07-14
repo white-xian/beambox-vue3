@@ -132,15 +132,16 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 			description: record.description,
 			status: record.status ?? AiPetFirmwareStatusEnum.DRAFT,
 		})
+		// 编辑模式下倒序初始化旧数据
 		packageGroups.value.firmware = (record.packages || []).map((item) => ({
 			...item,
 			localKey: createLocalKey(),
-		}))
+		})).reverse()
 		if (record.subVersionPackage?.length) {
 			packageGroups.value.art = record.subVersionPackage.map((item) => ({
 				...item,
 				localKey: createLocalKey(),
-			}))
+			})).reverse()
 		}
 	} else {
 		await setFieldsValue({

@@ -70,11 +70,17 @@ const currentRecord = ref<AiPetFirmwareIM>({
 	subVersionPackage: [],
 })
 
-/** 固件包表格数据 */
-const firmwarePackages = computed(() => currentRecord.value.packages || [])
+/** 固件包表格数据（倒序） */
+const firmwarePackages = computed(() => {
+	const list = currentRecord.value.packages || []
+	return [...list].reverse()
+})
 
-/** 美术包表格数据 */
-const artPackages = computed(() => currentRecord.value.subVersionPackage || [])
+/** 美术包表格数据（倒序） */
+const artPackages = computed(() => {
+	const list = currentRecord.value.subVersionPackage || []
+	return [...list].reverse()
+})
 
 /** 所有附属包总数 */
 const totalPackageCount = computed(() => firmwarePackages.value.length + artPackages.value.length)
@@ -110,12 +116,12 @@ const [registerDrawer, { setDrawerProps }] = useDrawerInner((data) => {
 	}
 })
 
-/** 查询指定主版本的附属包详情 */
+/** 查询指定主版本的附属包详情，用接口返回的完整数据刷新记录 */
 async function fetchPackages(versionId: string) {
 	try {
-		const packages = await getAiPetFirmwareDetailApi(versionId)
-		if (Array.isArray(packages)) {
-			currentRecord.value.packages = packages
+		const detail = await getAiPetFirmwareDetailApi(versionId)
+		if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+			setRecord(detail)
 		}
 	} catch {
 		// 保持 table 传入的数据
