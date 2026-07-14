@@ -44,6 +44,10 @@ export interface AiPetFirmwareIM extends BaseEntity {
   status?: AiPetFirmwareStatusEnum;
   /** 当前主版本下的附属包列表 */
   packages: AiPetFirmwarePackageIM[];
+  /** 副版本号*/
+  subVersionCode?: number;
+  /** 副版本附属包列表 */
+  subVersionPackage?: AiPetFirmwarePackageIM[];
   /** 是否强制升级 */
   forceUpgrade?: string;
 }

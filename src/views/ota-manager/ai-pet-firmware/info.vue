@@ -6,40 +6,45 @@
 			<BasicForm @register="registerForm" class="basic-info-form">
 				<template #formFooter>
 					<Col :span="24" style="padding-top: 8px; width: 100%">
-						<Divider orientation="left">附属包配置共 {{ packageList.length }} 条</Divider>
+						<Divider orientation="left">附属包配置共 {{ totalPackageCount }} 条</Divider>
 						<div class="package-section-tip">
 							<span>支持配置多个模块的固件附属包，附属包项可按需新增。</span>
 							<a-button type="primary" size="small" @click="addPackage"> 添加附属包 </a-button>
 						</div>
-						<!-- 空状态提示 -->
-						<div v-if="!packageList.length" class="package-empty">暂无附属包配置，点击右上角"添加附属包"开始添加。</div>
-						<!-- 附属包表单卡片 -->
-						<div v-for="(record, index) in packageList" :key="record.localKey" class="package-card">
-							<div class="package-card__header">
-								<span class="package-card__title">附属包 {{ index + 1 }}</span>
-								<a-button type="link" :disabled="packageList.length <= 1" class="package-card__delete-btn" @click="removePackage(index)">
-									<DeleteOutlined />
-									<span>删除</span>
-								</a-button>
-							</div>
-							<Row :gutter="16" class="package-card__body">
-								<Col :span="8">
-									<Form.Item label="模块编码" :label-col="{ style: { width: '72px' } }" required>
-										<a-input disabled v-model:value="record.moduleCode" placeholder="MAIN/MCU/UI/RESOURCE" @blur="normalizeModuleCode(record)" />
-									</Form.Item>
-								</Col>
-								<Col :span="8">
-									<Form.Item label="模块名称" :label-col="{ style: { width: '72px' } }" required>
-										<a-input v-model:value="record.moduleName" placeholder="例如 MCU 固件" />
-									</Form.Item>
-								</Col>
-								<Col :span="8">
-									<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
-										<SingleFileUpload v-model:value="record.fileUrl" list-type="picture-card" :max-size="200" :upload="'/file/oss/upload'" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
-									</Form.Item>
-								</Col>
-							</Row>
-						</div>
+						<!-- 附属包分类 Tabs -->
+						<el-tabs v-model="activeTab" type="border-card" class="package-tabs">
+							<el-tab-pane v-for="tab in packageTabs" :key="tab.key" :label="tab.label" :name="tab.key">
+								<!-- 空状态提示 -->
+								<div v-if="!currentPackages.length" class="package-empty">暂无{{ tab.label }}配置，点击右上角"添加附属包"开始添加。</div>
+								<!-- 附属包表单卡片 -->
+								<div v-for="(record, index) in currentPackages" :key="record.localKey" class="package-card">
+									<div class="package-card__header">
+										<span class="package-card__title">{{ tab.label }} {{ index + 1 }}</span>
+										<a-button type="link" :disabled="currentPackages.length <= 1" class="package-card__delete-btn" @click="removePackage(index)">
+											<DeleteOutlined />
+											<span>删除</span>
+										</a-button>
+									</div>
+									<Row :gutter="16" class="package-card__body">
+										<Col :span="8">
+											<Form.Item label="模块编码" :label-col="{ style: { width: '72px' } }" required>
+												<a-input disabled v-model:value="record.moduleCode" placeholder="自动分配" @blur="normalizeModuleCode(record)" />
+											</Form.Item>
+										</Col>
+										<Col :span="8">
+											<Form.Item label="模块名称" :label-col="{ style: { width: '72px' } }" required>
+												<a-input v-model:value="record.moduleName" placeholder="例如 MCU 固件" />
+											</Form.Item>
+										</Col>
+										<Col :span="8">
+											<Form.Item label="固件文件" :label-col="{ style: { width: '72px' } }" required style="align-items: center">
+												<SingleFileUpload v-model:value="record.fileUrl" list-type="picture-card" :max-size="200" :upload="'/file/oss/upload'" :show-delete="true" :show-size="false" upload-text="上传固件" @upload-success="(item: any) => onPackageUploadSuccess(record, item)" />
+											</Form.Item>
+										</Col>
+									</Row>
+								</div>
+							</el-tab-pane>
+						</el-tabs>
 					</Col>
 				</template>
 			</BasicForm>
@@ -64,12 +69,35 @@ type PackageFormItem = AiPetFirmwarePackageIM & {
 	localKey: string
 }
 
+/** Tab 分组 key */
+type PackageTabKey = 'firmware' | 'art'
+
+/** Tab 配置 */
+const packageTabs: { key: PackageTabKey; label: string }[] = [
+	{ key: 'firmware', label: '固件包' },
+	{ key: 'art', label: '美术包' },
+]
+
 const emit = defineEmits(['success', 'register'])
 const { createMessage } = useMessage()
 const isUpdate = ref(false)
 const recordId = ref<string | undefined>()
-const packageList = ref<PackageFormItem[]>([])
+
+/** 附属包分组数据 */
+const packageGroups = ref<Record<PackageTabKey, PackageFormItem[]>>({
+	firmware: [],
+	art: [],
+})
+const activeTab = ref<PackageTabKey>('firmware')
 let packageIndex = 0
+
+/** 当前激活 tab 下的附属包列表 */
+const currentPackages = computed(() => packageGroups.value[activeTab.value])
+
+/** 所有 tab 下的附属包总数 */
+const totalPackageCount = computed(() => {
+	return packageGroups.value.firmware.length + packageGroups.value.art.length
+})
 
 const [registerForm, { resetFields, setFieldsValue, validate, clearValidate }] = useForm({
 	labelWidth: 96,
@@ -91,7 +119,8 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 	setModalProps({ loading: true, confirmLoading: false })
 	isUpdate.value = !!data?.isUpdate
 	recordId.value = undefined
-	packageList.value = []
+	packageGroups.value = { firmware: [], art: [] }
+	activeTab.value = 'firmware'
 
 	if (unref(isUpdate) && data?.record) {
 		const record = data.record as AiPetFirmwareIM
@@ -99,21 +128,31 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 		await setFieldsValue({
 			versionName: normalizeVersionNameInput(record.versionName),
 			versionCode: getVersionCodeByName(record.versionName) ?? record.versionCode,
+			subVersionCode: record.subVersionCode ?? undefined,
 			description: record.description,
 			status: record.status ?? AiPetFirmwareStatusEnum.DRAFT,
 		})
-		packageList.value = (record.packages || []).map((item) => ({
+		packageGroups.value.firmware = (record.packages || []).map((item) => ({
 			...item,
 			localKey: createLocalKey(),
 		}))
+		if (record.subVersionPackage?.length) {
+			packageGroups.value.art = record.subVersionPackage.map((item) => ({
+				...item,
+				localKey: createLocalKey(),
+			}))
+		}
 	} else {
 		await setFieldsValue({
 			status: AiPetFirmwareStatusEnum.DRAFT,
 		})
 	}
 
-	if (packageList.value.length === 0) {
-		addPackage()
+	if (packageGroups.value.firmware.length === 0 && packageGroups.value.art.length === 0) {
+		packageGroups.value.firmware.push(createPackage())
+		assignDefaultModuleCode(packageGroups.value.firmware)
+		packageGroups.value.art.push(createPackage())
+		assignDefaultModuleCode(packageGroups.value.art)
 	}
 
 	setModalProps({ loading: false })
@@ -142,25 +181,29 @@ function createPackage(): PackageFormItem {
 }
 
 /** 仅为新建附属包自动分配 moduleCode（纯数字序号），不覆盖已有编码 */
-function assignDefaultModuleCode(record: PackageFormItem, index: number) {
-	if (!record.moduleCode || /^\d+$/.test(record.moduleCode)) {
-		record.moduleCode = String(index + 1)
-	}
+function assignDefaultModuleCode(list: PackageFormItem[]) {
+	list.forEach((item, idx) => {
+		if (!item.moduleCode || /^\d+$/.test(item.moduleCode)) {
+			item.moduleCode = String(idx + 1)
+		}
+	})
 }
 
-/** 添加一个附属包，并清理旧校验状态 */
+/** 在当前激活 tab 下添加一个附属包 */
 function addPackage() {
-	packageList.value.push(createPackage())
-	packageList.value.forEach((item, idx) => assignDefaultModuleCode(item, idx))
+	const list = packageGroups.value[activeTab.value]
+	list.push(createPackage())
+	assignDefaultModuleCode(list)
 	nextTick(() => {
 		clearValidate()
 	})
 }
 
-/** 删除指定附属包，并清理旧校验状态 */
+/** 删除当前激活 tab 下指定附属包 */
 function removePackage(index: number) {
-	packageList.value.splice(index, 1)
-	packageList.value.forEach((item, idx) => assignDefaultModuleCode(item, idx))
+	const list = packageGroups.value[activeTab.value]
+	list.splice(index, 1)
+	assignDefaultModuleCode(list)
 	nextTick(() => clearValidate())
 }
 
@@ -204,24 +247,43 @@ function onPackageUploadSuccess(record: PackageFormItem, uploadItem: { response?
 function buildPayload(values: Recordable): AiPetFirmwareIM {
 	const versionName = values.versionName ? `V${values.versionName}` : ''
 
+	/** 固件包附属包列表 */
+	const firmwarePackages = packageGroups.value.firmware.map((item) => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { localKey, ...pkg } = item
+		return {
+			...pkg,
+			moduleCode: pkg.moduleCode.trim(),
+			moduleName: pkg.moduleName.trim(),
+			fileName: pkg.fileName.trim(),
+			fileUrl: pkg.fileUrl.trim(),
+			fileSize: normalizeText(pkg.fileSize),
+		}
+	})
+
+	/** 美术包（副包）列表 */
+	const artPackages = packageGroups.value.art.map((item) => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { localKey, ...pkg } = item
+		return {
+			...pkg,
+			moduleCode: pkg.moduleCode.trim(),
+			moduleName: pkg.moduleName.trim(),
+			fileName: pkg.fileName.trim(),
+			fileUrl: pkg.fileUrl.trim(),
+			fileSize: normalizeText(pkg.fileSize),
+		}
+	})
+
 	return {
 		id: recordId.value,
 		versionCode: getVersionCodeByName(values.versionName) ?? Number(values.versionCode),
 		versionName,
 		description: (values.description || '').trim(),
 		status: values.status,
-		packages: packageList.value.map((item) => {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { localKey, ...packageItem } = item
-			return {
-				...packageItem,
-				moduleCode: packageItem.moduleCode.trim(),
-				moduleName: packageItem.moduleName.trim(),
-				fileName: packageItem.fileName.trim(),
-				fileUrl: packageItem.fileUrl.trim(),
-				fileSize: normalizeText(packageItem.fileSize),
-			}
-		}),
+		subVersionCode: values.subVersionCode ?? undefined,
+		packages: firmwarePackages,
+		subVersionPackage: artPackages.length > 0 ? artPackages : undefined,
 	}
 }
 
@@ -235,18 +297,23 @@ async function handleSubmit() {
 	}
 
 	// 自定义验证附属包
-	if (packageList.value.length === 0) {
+	const allPackages = [
+		...packageGroups.value.firmware,
+		...packageGroups.value.art,
+	]
+
+	if (allPackages.length === 0) {
 		createMessage.warning('请至少添加一个附属包')
 		return
 	}
 
-	const invalidModuleIndex = packageList.value.findIndex((item) => !item.moduleCode?.trim() || !item.moduleName?.trim())
+	const invalidModuleIndex = allPackages.findIndex((item) => !item.moduleCode?.trim() || !item.moduleName?.trim())
 	if (invalidModuleIndex > -1) {
 		createMessage.warning(`请完善第 ${invalidModuleIndex + 1} 个附属包模块信息`)
 		return
 	}
 
-	const invalidFileIndex = packageList.value.findIndex((item) => !item.fileName?.trim() || !item.fileUrl?.trim() || !normalizeText(item.fileSize))
+	const invalidFileIndex = allPackages.findIndex((item) => !item.fileName?.trim() || !item.fileUrl?.trim() || !normalizeText(item.fileSize))
 	if (invalidFileIndex > -1) {
 		createMessage.warning(`请上传第 ${invalidFileIndex + 1} 个附属包文件`)
 		return
@@ -360,6 +427,24 @@ html[data-theme='dark'] {
 			color: #8b949e;
 			background: #1a1a1a;
 			border-color: #303030;
+		}
+
+		.package-tabs {
+			background: #1a1a1a;
+
+			.el-tabs__header {
+				background: #21262d;
+				border-color: #303030;
+			}
+
+			.el-tabs__item {
+				color: #8b949e;
+
+				&.is-active {
+					color: #58a6ff;
+					background: #1a1a1a;
+				}
+			}
 		}
 
 		.package-card {

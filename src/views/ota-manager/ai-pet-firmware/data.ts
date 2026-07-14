@@ -114,12 +114,12 @@ export function formatFileSize(value?: string | number) {
 /** AI 宠物固件 OTA 列表列配置 */
 export const columns: BasicColumn[] = [
 	{
-		title: '主版本号',
+		title: '固件版本号',
 		dataIndex: 'versionCode',
 		width: 120,
 	},
 	{
-		title: '主版本名称',
+		title: '固件版本名称',
 		dataIndex: 'versionName',
 		width: 160,
 	},
@@ -132,10 +132,12 @@ export const columns: BasicColumn[] = [
 		title: '附属包数量',
 		dataIndex: 'packages',
 		width: 120,
-		/** 根据附属包数组实时展示数量，避免额外字段依赖 */
+		/** 根据附属包数组 + 副版本附属包实时展示数量 */
 		customRender: ({ record }) => {
 			const data = record as AiPetFirmwareIM
-			return data.packages?.length || 0
+			const mainCount = data.packages?.length || 0
+			const subCount = data.subVersionPackage?.length || 0
+			return mainCount + subCount
 		},
 	},
 	{
@@ -163,7 +165,7 @@ export const columns: BasicColumn[] = [
 /** AI 宠物固件 OTA 列表搜索表单配置 */
 export const searchFormSchema: FormSchema[] = [
 	{
-		label: '主版本名称',
+		label: '固件版本名称',
 		field: 'versionCode',
 		component: 'InputNumber',
 		colProps: { span: 6 },
@@ -190,13 +192,19 @@ export const searchFormSchema: FormSchema[] = [
 /** AI 宠物固件 OTA 详情描述项配置 */
 export const detailSchema: DescItem[] = [
 	{
-		label: '主版本号',
+		label: '固件版本号',
 		field: 'versionCode',
 		span: 8,
 	},
 	{
-		label: '主版本名称',
+		label: '固件版本名称',
 		field: 'versionName',
+		span: 8,
+	},
+	{
+		label: '美术包版本号',
+		field: 'subVersionCode',
+		render: (val) => val ?? '-',
 		span: 8,
 	},
 	{
