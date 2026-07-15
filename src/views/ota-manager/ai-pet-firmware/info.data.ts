@@ -4,7 +4,7 @@ import { AiPetFirmwareStatusEnum } from '@/model/ota'
 export const formSchema: FormSchema[] = [
 	{
 		field: 'versionName',
-		label: '主版本名称',
+		label: '固件版本',
 		component: 'Input',
 		componentProps: ({ formModel }) => ({
 			addonBefore: 'V',
@@ -19,12 +19,12 @@ export const formSchema: FormSchema[] = [
 			},
 		}),
 		required: true,
-		rules: [{ required: true, message: '请输入主版本名称', trigger: 'blur' }],
+		rules: [{ required: true, message: '请输入固件版本名称', trigger: 'blur' }],
 		colProps: { xs: 24, md: 12 },
 	},
 	{
 		field: 'versionCode',
-		label: '主版本号',
+		label: '固件版本号',
 		component: 'InputNumber',
 		componentProps: {
 			disabled: true,
@@ -32,7 +32,22 @@ export const formSchema: FormSchema[] = [
 			precision: 0,
 			style: { width: '100%' },
 		},
-		rules: [{ required: true, message: '请输入主版本号', trigger: 'change' }],
+		rules: [{ required: true, message: '请输入固件版本号', trigger: 'change' }],
+		colProps: { xs: 24, md: 12 },
+	},
+	{
+		field: 'subVersionCode',
+		label: '美术包版本',
+		component: 'InputNumber',
+		componentProps: {
+			min: 1,
+			precision: 0,
+			step: 1,
+			placeholder: '同一固件版本下的美术包版本号，例如 1、2',
+			style: { width: '100%' },
+			parser: (value: string) => value?.replace(/[^\d]/g, '') ?? '',
+		},
+    rules: [{ required: true, message: '请输入美术包版本号', trigger: 'change' }],
 		colProps: { xs: 24, md: 12 },
 	},
 	{

@@ -4,24 +4,46 @@
 	<BasicDrawer v-bind="$attrs" :title="getTitle" @register="registerDrawer" width="70%" showFooter :showOkBtn="false">
 		<!-- 主版本基础信息 -->
 		<Description @register="registerDescription" class="mt-4" />
-		<Divider orientation="left">附属包</Divider>
-		<!-- 附属包明细：图片直接预览，其他文件展示可点击链接 -->
-		<Table :columns="packageColumns" :data-source="packageData" :pagination="false" row-key="id" size="small" bordered>
-			<template #bodyCell="{ column, record }">
-				<template v-if="column.key === 'fileUrl'">
-					<div class="file-preview-cell">
-						<Image v-if="isImageFile(record.fileUrl)" :src="record.fileUrl" :width="60" :height="60" :fallback="fallbackImg" style="object-fit: cover; border-radius: 4px; cursor: pointer" />
-						<a v-else :href="record.fileUrl" target="_blank" rel="noopener noreferrer" class="file-link">
-							<FileOutlined style="margin-right: 4px" />
-							<span class="file-name">{{ record.fileName || getFileNameFromUrl(record.fileUrl) }}</span>
-						</a>
-					</div>
-				</template>
-				<span v-else-if="column.key === 'fileSize'">
-					{{ formatFileSize(record.fileSize) }}
-				</span>
-			</template>
-		</Table>
+		<Divider orientation="left">附属包配置共 {{ totalPackageCount }} 条</Divider>
+		<!-- 附属包分类 Tabs -->
+		<el-tabs v-model="activeTab" type="border-card" class="package-tabs">
+			<el-tab-pane label="固件包" name="firmware">
+				<Table :columns="packageColumns" :data-source="firmwarePackages" :pagination="false" row-key="id" size="small" bordered>
+					<template #bodyCell="{ column, record }">
+						<template v-if="column.key === 'fileUrl'">
+							<div class="file-preview-cell">
+								<Image v-if="isImageFile(record.fileUrl)" :src="record.fileUrl" :width="60" :height="60" :fallback="fallbackImg" style="object-fit: cover; border-radius: 4px; cursor: pointer" />
+								<a v-else :href="record.fileUrl" target="_blank" rel="noopener noreferrer" class="file-link">
+									<FileOutlined style="margin-right: 4px" />
+									<span class="file-name">{{ record.fileName || getFileNameFromUrl(record.fileUrl) }}</span>
+								</a>
+							</div>
+						</template>
+						<span v-else-if="column.key === 'fileSize'">
+							{{ formatFileSize(record.fileSize) }}
+						</span>
+					</template>
+				</Table>
+			</el-tab-pane>
+			<el-tab-pane label="美术包" name="art">
+				<Table :columns="packageColumns" :data-source="artPackages" :pagination="false" row-key="id" size="small" bordered>
+					<template #bodyCell="{ column, record }">
+						<template v-if="column.key === 'fileUrl'">
+							<div class="file-preview-cell">
+								<Image v-if="isImageFile(record.fileUrl)" :src="record.fileUrl" :width="60" :height="60" :fallback="fallbackImg" style="object-fit: cover; border-radius: 4px; cursor: pointer" />
+								<a v-else :href="record.fileUrl" target="_blank" rel="noopener noreferrer" class="file-link">
+									<FileOutlined style="margin-right: 4px" />
+									<span class="file-name">{{ record.fileName || getFileNameFromUrl(record.fileUrl) }}</span>
+								</a>
+							</div>
+						</template>
+						<span v-else-if="column.key === 'fileSize'">
+							{{ formatFileSize(record.fileSize) }}
+						</span>
+					</template>
+				</Table>
+			</el-tab-pane>
+		</el-tabs>
 	</BasicDrawer>
 </template>
 
@@ -37,6 +59,7 @@ import { AiPetFirmwareIM } from '@/model/ota'
 import { detailSchema, formatFileSize } from './data'
 
 const getTitle = ref('AI 宠物固件详情')
+const activeTab = ref('firmware')
 
 /** 当前详情抽屉展示的主版本记录 */
 const currentRecord = ref<AiPetFirmwareIM>({
@@ -44,10 +67,23 @@ const currentRecord = ref<AiPetFirmwareIM>({
 	versionName: '',
 	description: '',
 	packages: [],
+	subVersionPackage: [],
 })
 
-/** 附属包表格数据，统一从当前记录派生 */
-const packageData = computed(() => currentRecord.value.packages || [])
+/** 固件包表格数据（倒序） */
+const firmwarePackages = computed(() => {
+	const list = currentRecord.value.packages || []
+	return [...list].reverse()
+})
+
+/** 美术包表格数据（倒序） */
+const artPackages = computed(() => {
+	const list = currentRecord.value.subVersionPackage || []
+	return [...list].reverse()
+})
+
+/** 所有附属包总数 */
+const totalPackageCount = computed(() => firmwarePackages.value.length + artPackages.value.length)
 
 /** 附属包表格列配置 */
 const packageColumns: any[] = [
@@ -80,12 +116,12 @@ const [registerDrawer, { setDrawerProps }] = useDrawerInner((data) => {
 	}
 })
 
-/** 查询指定主版本的附属包详情 */
+/** 查询指定主版本的附属包详情，用接口返回的完整数据刷新记录 */
 async function fetchPackages(versionId: string) {
 	try {
-		const packages = await getAiPetFirmwareDetailApi(versionId)
-		if (Array.isArray(packages)) {
-			currentRecord.value.packages = packages
+		const detail = await getAiPetFirmwareDetailApi(versionId)
+		if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+			setRecord(detail)
 		}
 	} catch {
 		// 保持 table 传入的数据
@@ -124,7 +160,9 @@ function setRecord(record: AiPetFirmwareIM) {
 		versionName: record.versionName,
 		description: record.description,
 		status: record.status,
+		subVersionCode: record.subVersionCode,
 		packages: Array.isArray(record.packages) ? [...record.packages] : [],
+		subVersionPackage: Array.isArray(record.subVersionPackage) ? [...record.subVersionPackage] : [],
 		id: record.id,
 		createTime: (record as any).createTime,
 		updateTime: (record as any).updateTime,

@@ -23,16 +23,16 @@ export default defineConfig(async (configEnv) => {
 			outDir: 'dist',
 			assetsDir: 'static',
 			sourcemap: false,
+			// 小于 20KB 的资源内联为 base64，减少文件 I/O
+			assetsInlineLimit: 20480,
 		},
 		css: {
 			preprocessorOptions: {
 				sass: {
 					api: 'modern-compiler',
-					style: 'expanded',
 				},
 				scss: {
 					api: 'modern-compiler',
-					style: 'expanded',
 				},
 			},
 		},

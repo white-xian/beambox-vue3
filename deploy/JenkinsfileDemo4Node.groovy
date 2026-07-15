@@ -12,7 +12,7 @@ pipeline {
         /*git配置*/
         GIT_CREDENTIALSID = "gitlab-token" // 登录git凭证id，请在系统管理处配置
         GIT_BRANCHE_NAME = "main" // 分支名称
-        GIT_REPO_URL = "http://120.77.252.7/DeltaMai/beambox-vue3.git"   // git地址
+        GIT_REPO_URL = "https://gitlab.beambox.cn/DeltaMai/beambox-vue3.git"   // git地址
         /*harbor仓库配置*/
         HARBOR_HOST = "harbor.beambox.app" // harbor地址
         HARBOR_CREDENTIALSID = "jenkinsHarbor" // 登录harbor凭证id，请在系统管理处配置

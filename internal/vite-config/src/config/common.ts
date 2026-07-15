@@ -12,8 +12,9 @@ const commonConfig: (mode: string) => UserConfig = (mode) => ({
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
-      // TODO: Prevent memory overflow
-      maxParallelFileOps: 3,
+      // 提升并行文件操作数以加速构建写入
+      // 8GB 内存足够支撑更高并发
+      maxParallelFileOps: 16,
     },
   },
   plugins: [
